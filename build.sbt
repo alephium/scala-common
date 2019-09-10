@@ -13,41 +13,14 @@ val scalastyleCfgFile     = "project/scalastyle-config.xml"
 val scalastyleTestCfgFile = "project/scalastyle-test-config.xml"
 
 lazy val root: Project = Project("root", file("."))
+  .settings(commonSettings: _*)
   .settings(
     // This is just a project to aggregate modules, nothing to compile or to check scalastyle for.
-    unmanagedSourceDirectories in Compile := Seq(),
-    unmanagedSourceDirectories in Test := Seq(),
+    unmanagedSourceDirectories := Seq(),
     scalastyle := {},
-    scalastyle in Test := {},
+    scalastyle in Test := {}
   )
-  .aggregate(app, `app-debug`, `app-server`, flow, util, serde, crypto, protocol, rpc, explorer)
-
-def mainProject(id: String): Project =
-  baseProject(id)
-    .settings(
-      Compile / scalastyleConfig := root.base / scalastyleCfgFile,
-      Test / scalastyleConfig := root.base / scalastyleTestCfgFile
-    )
-    .enablePlugins(JavaAppPackaging)
-    .dependsOn(`app-server`)
-
-lazy val app = mainProject("app")
-
-lazy val `app-debug` = mainProject("app-debug")
-  .settings(
-    libraryDependencies ++= Seq(
-      metrics,
-      `metrics-jmx`
-    ),
-    coverageEnabled := false
-  )
-
-lazy val `app-server` = subProject("app-server")
-  .dependsOn(flow, rpc, util % "test->test;compile->compile")
-
-lazy val benchmark = mainProject("benchmark")
-  .enablePlugins(JmhPlugin)
-  .settings(scalacOptions += "-Xdisable-assertions")
+  .aggregate(util, macros, serde, crypto, rpc)
 
 def subProject(path: String): Project = {
   baseProject(path)
@@ -62,36 +35,6 @@ lazy val crypto = subProject("crypto")
   .settings(
     libraryDependencies ++= Seq(
       curve25519
-    )
-  )
-
-lazy val explorer = subProject("explorer")
-  .settings(
-    mainClass := Some("org.alephium.explorer.ExplorerServer"),
-    libraryDependencies ++= Seq(
-      `akka-http`
-    )
-  )
-  .enablePlugins(JavaAppPackaging)
-  .dependsOn(rpc, util)
-
-lazy val flow = subProject("flow")
-  .settings(
-    libraryDependencies ++= Seq(
-      akka,
-      `scala-logging`
-    )
-  )
-  .dependsOn(util % "test->test;compile->compile",
-             serde,
-             crypto,
-             protocol % "test->test;compile->compile")
-
-lazy val protocol = subProject("protocol")
-  .dependsOn(util % "test->test;compile->compile", serde, crypto)
-  .settings(
-    libraryDependencies ++= Seq(
-      `circe-parser`
     )
   )
 
@@ -117,12 +60,12 @@ lazy val serde = subProject("serde")
 lazy val util = subProject("util")
   .dependsOn(macros)
   .settings(
+    publishArtifact in Test := true,
     libraryDependencies ++= Seq(
       akka,
       `akka-slf4j`,
       bcprov,
-      `scala-reflect`(scalaVersion.value),
-      rocksdb
+      `scala-reflect`(scalaVersion.value)
     )
   )
 
