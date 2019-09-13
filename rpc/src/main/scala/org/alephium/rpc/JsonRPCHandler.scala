@@ -59,17 +59,19 @@ object JsonRPCHandler extends StrictLogging {
     }
   }
 
-  def route(handler: Handler)(implicit EC: ExecutionContext, FM: Materializer): Route =
+  def routeWs(handler: Handler)(implicit EC: ExecutionContext, FM: Materializer): Route =
     get {
       handleWebSocketMessages(handleWebSocketRPC(handler))
-    } ~
-      post {
-        decodeRequest {
-          entity(as[String]) { text =>
-            onSuccess(handleRequest(handler, text)) { response =>
-              complete(response.asJson.toString)
-            }
+    }
+
+  def routeHttp(handler: Handler): Route =
+    post {
+      decodeRequest {
+        entity(as[String]) { text =>
+          onSuccess(handleRequest(handler, text)) { response =>
+            complete(response.asJson.toString)
           }
         }
       }
+    }
 }

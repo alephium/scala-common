@@ -22,14 +22,13 @@ class EventBus() extends BaseActor {
   private val subscribers: mutable.HashSet[ActorRef] = mutable.HashSet.empty
 
   def receive: Receive = {
-    case Subscribe =>
-      if (!subscribers(sender)) { subscribers += sender }
-    case Unsubscribe =>
-      if (subscribers(sender)) { subscribers -= sender }
     case event: Event =>
       subscribers.foreach { subscriber =>
         subscriber ! event
       }
-
+    case Subscribe =>
+      if (!subscribers(sender)) { subscribers += sender }
+    case Unsubscribe =>
+      if (subscribers(sender)) { subscribers -= sender }
   }
 }
