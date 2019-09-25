@@ -42,6 +42,7 @@ lazy val rpc = subProject("rpc")
   .settings(
     libraryDependencies ++= Seq(
       `akka-http`,
+      `akka-http-circe`,
       `akka-stream`,
       `circe-parser`,
       `circe-generic`,
