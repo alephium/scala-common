@@ -24,7 +24,7 @@ object JsonRPCHandler extends StrictLogging {
     json.as[RequestUnsafe] match {
       case Right(requestUnsafe) =>
         requestUnsafe.validate(handler) match {
-          case Right(request) => handler(request.method)(request)
+          case Right((request, f)) => f(request)
           case Left(error)    => Future.successful(requestUnsafe.failure(error))
         }
       case Left(decodingFailure) =>
