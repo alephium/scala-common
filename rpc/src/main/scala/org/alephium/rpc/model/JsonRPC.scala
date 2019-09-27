@@ -8,7 +8,7 @@ import io.circe._
 // https://www.jsonrpc.org/specification
 
 object JsonRPC extends StrictLogging {
-  type Handler = PartialFunction[String, Request => Future[Response]]
+  type Handler = String => Option[Request => Future[Response]]
 
   val versionKey = "jsonrpc"
   val version    = "2.0"
@@ -34,13 +34,13 @@ object JsonRPC extends StrictLogging {
       jsonrpc: String
   ) {
     def failure(error: Error): Response = Response.Failure(id, error)
-    def validate(handler: Handler): Either[Error, Request] = {
+    def validate(handler: Handler): Either[Error, (Request, Request => Future[Response])] = {
       if (jsonrpc == JsonRPC.version) {
-        if (handler.isDefinedAt(method)) {
-          Right(Request(id, method, params))
-        } else {
-          Left(Error.MethodNotFound)
+        handler(method) match {
+          case Some(f) => Right((Request(id, method, params), f))
+          case None    => Left(Error.MethodNotFound)
         }
+
       } else {
         Left(Error.InvalidRequest)
       }
