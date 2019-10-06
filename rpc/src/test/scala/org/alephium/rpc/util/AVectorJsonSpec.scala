@@ -1,4 +1,4 @@
-package org.alephium.rpc
+package org.alephium.rpc.util
 
 import org.alephium.util.{AlephiumSpec, AVector}
 
