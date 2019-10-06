@@ -6,7 +6,7 @@ import com.typesafe.scalalogging.StrictLogging
 import io.circe._
 import io.circe.generic.semiauto._
 
-// https://www.jsonrpc.org/specification
+/* Ref: https://www.jsonrpc.org/specification */
 
 object JsonRPC extends StrictLogging {
   type Handler = Map[String, Request => Future[Response]]
@@ -27,13 +27,13 @@ object JsonRPC extends StrictLogging {
     // scalastyle:on
   }
 
-  trait WithId { def id: Json }
+  trait WithId { def id: Long }
 
   case class RequestUnsafe(
       jsonrpc: String,
       method: String,
       params: Json,
-      id: Json
+      id: Long
   ) extends WithId {
     def runWith(handler: Handler): Future[Response] = {
       if (jsonrpc == JsonRPC.version) {
@@ -51,7 +51,7 @@ object JsonRPC extends StrictLogging {
     implicit val decoder: Decoder[RequestUnsafe] = deriveDecoder[RequestUnsafe]
   }
 
-  case class Request(method: String, params: Json, id: Json) extends WithId {
+  case class Request(method: String, params: Json, id: Long) extends WithId {
     def paramsAs[A: Decoder]: Either[Response, A] = params.as[A] match {
       case Right(a) => Right(a)
       case Left(decodingFailure) =>
@@ -76,18 +76,11 @@ object JsonRPC extends StrictLogging {
 
     def successful[T <: WithId](request: T): Response               = Success(request.id, Json.True)
     def successful[T <: WithId](request: T, result: Json): Response = Success(request.id, result)
-    def failed[T <: WithId](request: T, error: Error): Response     = Failure(request.id, error)
+    def failed[T <: WithId](request: T, error: Error): Response     = Failure(Some(request.id), error)
+    def failed(error: Error): Response                              = Failure(None, error)
 
-    case class Success(id: Json, result: Json) extends Response
-    object Success {
-      import io.circe.generic.semiauto._
-      implicit val decoder: Decoder[Success] = deriveDecoder[Success]
-    }
-    case class Failure(id: Json, error: Error) extends Response
-    object Failure {
-      import io.circe.generic.semiauto._
-      implicit val decoder: Decoder[Failure] = deriveDecoder[Failure]
-    }
+    case class Success(id: Long, result: Json)         extends Response
+    case class Failure(id: Option[Long], error: Error) extends Response
 
     implicit val encoder: Encoder[Response] = {
       val product: Encoder[Response] = Encoder.instance {

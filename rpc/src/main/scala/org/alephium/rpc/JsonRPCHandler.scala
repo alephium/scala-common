@@ -11,22 +11,21 @@ import io.circe.syntax._
 import model.JsonRPC._
 
 object JsonRPCHandler extends StrictLogging {
-  private def failure(error: Error): Response = Response.Failure(Json.Null, error)
-
   private def handleRequest(handler: Handler, json: Json): Future[Response] =
     json.as[RequestUnsafe] match {
       case Right(requestUnsafe) =>
         requestUnsafe.runWith(handler)
       case Left(decodingFailure) =>
         logger.debug(s"Unable to decode JSON-RPC request $json. ($decodingFailure)")
-        Future.successful(failure(Error.InvalidRequest))
+        val response = Response.failed(Error.InvalidRequest)
+        Future.successful(response)
     }
 
   def routeHttp(handler: Handler): Route =
     post {
       entity(as[Json]) { json =>
         onSuccess(handleRequest(handler, json)) { response =>
-          complete(response.asJson.toString)
+          complete(response.asJson.noSpaces)
         }
       }
     }
