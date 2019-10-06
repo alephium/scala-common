@@ -4,16 +4,17 @@ import scala.concurrent.Future
 
 import com.typesafe.scalalogging.StrictLogging
 import io.circe._
+import io.circe.generic.semiauto._
 
 // https://www.jsonrpc.org/specification
 
 object JsonRPC extends StrictLogging {
-  type Handler = String => Option[Request => Future[Response]]
+  type Handler = Map[String, Request => Future[Response]]
 
   val versionKey = "jsonrpc"
   val version    = "2.0"
 
-  def versionSet(json: Json): Json = json.mapObject(_.add(versionKey, Json.fromString(version)))
+  def versionSet(json: Json): Json = json.mapObject(_.+:(versionKey -> Json.fromString(version)))
 
   case class Error(code: Int, message: String)
 
@@ -28,36 +29,36 @@ object JsonRPC extends StrictLogging {
   }
 
   case class RequestUnsafe(
-      id: Json,
+      jsonrpc: String,
       method: String,
       params: Json,
-      jsonrpc: String
+      id: Json
   ) {
-    def failure(error: Error): Response = Response.Failure(id, error)
-    def validate(handler: Handler): Either[Error, (Request, Request => Future[Response])] = {
-      if (jsonrpc == JsonRPC.version) {
-        handler(method) match {
-          case Some(f) => Right((Request(id, method, params), f))
-          case None    => Left(Error.MethodNotFound)
-        }
+    private def failure(error: Error): Future[Response] =
+      Future.successful(Response.Failure(id, error))
 
+    def runWith(handler: Handler): Future[Response] = {
+      if (jsonrpc == JsonRPC.version) {
+        handler.get(method) match {
+          case Some(f) => f(Request(method, params, id))
+          case None    => failure(Error.MethodNotFound)
+        }
       } else {
-        Left(Error.InvalidRequest)
+        failure(Error.InvalidRequest)
       }
     }
   }
 
   object RequestUnsafe {
-    import io.circe.generic.semiauto._
     implicit val decoder: Decoder[RequestUnsafe] = deriveDecoder[RequestUnsafe]
   }
 
-  case class Request(id: Json, method: String, params: Json) {
+  case class Request(method: String, params: Json, id: Json) {
     def paramsAs[A: Decoder]: Either[Response, A] = params.as[A] match {
       case Right(a) => Right(a)
       case Left(decodingFailure) =>
         logger.debug(
-          s"Unable to decode JsonRPC request parameters. ($method@$id: ${decodingFailure})")
+          s"Unable to decode JsonRPC request parameters. ($method@$id: $decodingFailure)")
         Left(failure(Error.InvalidParams))
     }
 
@@ -67,7 +68,6 @@ object JsonRPC extends StrictLogging {
   }
 
   object Request {
-    import io.circe.generic.semiauto._
     implicit val encoder: Encoder[Request] = deriveEncoder[Request].mapJson(versionSet)
   }
 
@@ -95,10 +95,5 @@ object JsonRPC extends StrictLogging {
       }
       product.mapJson(versionSet)
     }
-
-    // TODO Rewrite better implementation than type casting/failover
-    implicit val decoder: Decoder[Response] =
-      Success.decoder.or[Response](Failure.decoder.asInstanceOf[Decoder[Response]])
-
   }
 }
