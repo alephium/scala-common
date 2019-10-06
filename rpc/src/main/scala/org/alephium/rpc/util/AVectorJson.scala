@@ -13,13 +13,7 @@ object AVectorJson {
   def encodeAVector[A](implicit encoder: Encoder[A]): Encoder[AVector[A]] =
     new Encoder[AVector[A]] {
       final def apply(as: AVector[A]): Json = {
-        val builder = Vector.newBuilder[Json]
-
-        as.foreach { a =>
-          builder += encoder(a)
-        }
-
-        Json.fromValues(builder.result())
+        Json.fromValues(as.map(encoder.apply).toIterable)
       }
     }
 }
