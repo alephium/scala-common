@@ -11,6 +11,7 @@ class AVectorJsonSpec extends AlephiumSpec {
     forAll { ys: List[Int] =>
       val xs   = AVector.from(ys)
       val json = encoder(xs)
+      json.noSpaces is xs.mkString("[", ",", "]")
       decoder.decodeJson(json).right.get is xs
     }
   }
