@@ -17,7 +17,6 @@ object JsonRPC extends StrictLogging {
   def versionSet(json: Json): Json = json.mapObject(_.+:(versionKey -> Json.fromString(version)))
 
   case class Error(code: Int, message: String)
-
   object Error {
     // scalastyle:off magic.number
     val ParseError     = Error(-32700, "Unable to parse request.")
@@ -28,23 +27,22 @@ object JsonRPC extends StrictLogging {
     // scalastyle:on
   }
 
+  trait WithId { def id: Json }
+
   case class RequestUnsafe(
       jsonrpc: String,
       method: String,
       params: Json,
       id: Json
-  ) {
-    private def failure(error: Error): Future[Response] =
-      Future.successful(Response.Failure(id, error))
-
+  ) extends WithId {
     def runWith(handler: Handler): Future[Response] = {
       if (jsonrpc == JsonRPC.version) {
         handler.get(method) match {
           case Some(f) => f(Request(method, params, id))
-          case None    => failure(Error.MethodNotFound)
+          case None    => Future.successful(Response.failed(this, Error.MethodNotFound))
         }
       } else {
-        failure(Error.InvalidRequest)
+        Future.successful(Response.failed(this, Error.InvalidRequest))
       }
     }
   }
@@ -53,29 +51,32 @@ object JsonRPC extends StrictLogging {
     implicit val decoder: Decoder[RequestUnsafe] = deriveDecoder[RequestUnsafe]
   }
 
-  case class Request(method: String, params: Json, id: Json) {
+  case class Request(method: String, params: Json, id: Json) extends WithId {
     def paramsAs[A: Decoder]: Either[Response, A] = params.as[A] match {
       case Right(a) => Right(a)
       case Left(decodingFailure) =>
         logger.debug(
           s"Unable to decode JsonRPC request parameters. ($method@$id: $decodingFailure)")
-        Left(failure(Error.InvalidParams))
+        Left(Response.failed(this, Error.InvalidParams))
     }
-
-    def successful(): Response          = Response.Success(id, Json.True)
-    def success(result: Json): Response = Response.Success(id, result)
-    def failure(error: Error): Response = Response.Failure(id, error)
   }
-
   object Request {
     implicit val encoder: Encoder[Request] = deriveEncoder[Request].mapJson(versionSet)
   }
 
-  sealed trait Response
+  case class Notification(method: String, params: Json)
+  object Notification {
+    implicit val encoder: Encoder[Notification] = deriveEncoder[Notification].mapJson(versionSet)
+  }
 
+  sealed trait Response
   object Response {
     import io.circe.syntax._
     import io.circe.generic.auto._
+
+    def successful[T <: WithId](request: T): Response               = Success(request.id, Json.True)
+    def successful[T <: WithId](request: T, result: Json): Response = Success(request.id, result)
+    def failed[T <: WithId](request: T, error: Error): Response     = Failure(request.id, error)
 
     case class Success(id: Json, result: Json) extends Response
     object Success {
