@@ -74,16 +74,16 @@ object JsonRPC extends StrictLogging {
 
   sealed trait Response
   object Response {
-    def successful[T <: WithId](request: T): Response               = Success(request.id, Json.True)
-    def successful[T <: WithId](request: T, result: Json): Response = Success(request.id, result)
-    def failed[T <: WithId](request: T, error: Error): Response     = Failure(Some(request.id), error)
-    def failed(error: Error): Response                              = Failure(None, error)
+    def successful[T <: WithId](request: T): Response               = Success(Json.True, request.id)
+    def successful[T <: WithId](request: T, result: Json): Response = Success(result, request.id)
+    def failed[T <: WithId](request: T, error: Error): Response     = Failure(error, Some(request.id))
+    def failed(error: Error): Response                              = Failure(error, None)
 
-    case class Success(id: Long, result: Json) extends Response
+    case class Success(result: Json, id: Long) extends Response
     object Success {
       implicit val encoder: Encoder[Success] = deriveEncoder[Success]
     }
-    case class Failure(id: Option[Long], error: Error) extends Response
+    case class Failure(error: Error, id: Option[Long]) extends Response
     object Failure {
       import io.circe.generic.auto._ // Note: I hate this!
       implicit val encoder: Encoder[Failure] = deriveEncoder[Failure]
