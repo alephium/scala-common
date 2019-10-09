@@ -4,19 +4,23 @@ import scala.concurrent.Future
 
 import com.typesafe.scalalogging.StrictLogging
 import io.circe._
+import io.circe.generic.semiauto._
+import io.circe.syntax._
 
-// https://www.jsonrpc.org/specification
+/* Ref: https://www.jsonrpc.org/specification
+ *
+ * The only difference is that the type for response we use here is Option[Long]
+ */
 
 object JsonRPC extends StrictLogging {
-  type Handler = String => Option[Request => Future[Response]]
+  type Handler = Map[String, Request => Future[Response]]
 
   val versionKey = "jsonrpc"
   val version    = "2.0"
 
-  def versionSet(json: Json): Json = json.mapObject(_.add(versionKey, Json.fromString(version)))
+  def versionSet(json: Json): Json = json.mapObject(_.+:(versionKey -> Json.fromString(version)))
 
   case class Error(code: Int, message: String)
-
   object Error {
     // scalastyle:off magic.number
     val ParseError     = Error(-32700, "Unable to parse request.")
@@ -27,65 +31,62 @@ object JsonRPC extends StrictLogging {
     // scalastyle:on
   }
 
+  trait WithId { def id: Long }
+
   case class RequestUnsafe(
-      id: Json,
+      jsonrpc: String,
       method: String,
       params: Json,
-      jsonrpc: String
-  ) {
-    def failure(error: Error): Response = Response.Failure(id, error)
-    def validate(handler: Handler): Either[Error, (Request, Request => Future[Response])] = {
+      id: Long
+  ) extends WithId {
+    def runWith(handler: Handler): Future[Response] = {
       if (jsonrpc == JsonRPC.version) {
-        handler(method) match {
-          case Some(f) => Right((Request(id, method, params), f))
-          case None    => Left(Error.MethodNotFound)
+        handler.get(method) match {
+          case Some(f) => f(Request(method, params, id))
+          case None    => Future.successful(Response.failed(this, Error.MethodNotFound))
         }
-
       } else {
-        Left(Error.InvalidRequest)
+        Future.successful(Response.failed(this, Error.InvalidRequest))
       }
     }
   }
-
   object RequestUnsafe {
-    import io.circe.generic.semiauto._
     implicit val decoder: Decoder[RequestUnsafe] = deriveDecoder[RequestUnsafe]
   }
 
-  case class Request(id: Json, method: String, params: Json) {
+  case class Request(method: String, params: Json, id: Long) extends WithId {
     def paramsAs[A: Decoder]: Either[Response, A] = params.as[A] match {
       case Right(a) => Right(a)
       case Left(decodingFailure) =>
         logger.debug(
-          s"Unable to decode JsonRPC request parameters. ($method@$id: ${decodingFailure})")
-        Left(failure(Error.InvalidParams))
+          s"Unable to decode JsonRPC request parameters. ($method@$id: $decodingFailure)")
+        Left(Response.failed(this, Error.InvalidParams))
     }
-
-    def successful(): Response          = Response.Success(id, Json.True)
-    def success(result: Json): Response = Response.Success(id, result)
-    def failure(error: Error): Response = Response.Failure(id, error)
   }
-
   object Request {
-    import io.circe.generic.semiauto._
     implicit val encoder: Encoder[Request] = deriveEncoder[Request].mapJson(versionSet)
   }
 
+  case class Notification(method: String, params: Json)
+  object Notification {
+    implicit val encoder: Encoder[Notification] = deriveEncoder[Notification].mapJson(versionSet)
+  }
+
   sealed trait Response
-
   object Response {
-    import io.circe.syntax._
-    import io.circe.generic.auto._
+    def successful[T <: WithId](request: T): Response               = Success(Json.True, request.id)
+    def successful[T <: WithId](request: T, result: Json): Response = Success(result, request.id)
+    def failed[T <: WithId](request: T, error: Error): Response     = Failure(error, Some(request.id))
+    def failed(error: Error): Response                              = Failure(error, None)
 
-    case class Success(id: Json, result: Json) extends Response
+    case class Success(result: Json, id: Long) extends Response
     object Success {
-      import io.circe.generic.semiauto._
-      implicit val decoder: Decoder[Success] = deriveDecoder[Success]
+      implicit val encoder: Encoder[Success] = deriveEncoder[Success]
     }
-    case class Failure(id: Json, error: Error) extends Response
+    case class Failure(error: Error, id: Option[Long]) extends Response
     object Failure {
-      import io.circe.generic.semiauto._
-      implicit val decoder: Decoder[Failure] = deriveDecoder[Failure]
+      import io.circe.generic.auto._ // Note: I hate this!
+      implicit val encoder: Encoder[Failure] = deriveEncoder[Failure]
     }
 
     implicit val encoder: Encoder[Response] = {
@@ -95,10 +96,5 @@ object JsonRPC extends StrictLogging {
       }
       product.mapJson(versionSet)
     }
-
-    // TODO Rewrite better implementation than type casting/failover
-    implicit val decoder: Decoder[Response] =
-      Success.decoder.or[Response](Failure.decoder.asInstanceOf[Decoder[Response]])
-
   }
 }

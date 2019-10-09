@@ -1,4 +1,4 @@
-package org.alephium.rpc
+package org.alephium.rpc.util
 
 import scala.reflect.ClassTag
 
@@ -10,16 +10,10 @@ object AVectorJson {
   def decodeAVector[A: ClassTag](implicit A: Decoder[Array[A]]): Decoder[AVector[A]] =
     A.map(AVector.unsafe)
 
-  def encodeAVector[A](implicit A: Encoder[A]): Encoder[AVector[A]] =
+  def encodeAVector[A](implicit encoder: Encoder[A]): Encoder[AVector[A]] =
     new Encoder[AVector[A]] {
       final def apply(as: AVector[A]): Json = {
-        val builder = Vector.newBuilder[Json]
-
-        as.foreach { a =>
-          builder += A(a)
-        }
-
-        Json.fromValues(builder.result())
+        Json.fromValues(as.map(encoder.apply).toIterable)
       }
     }
 }
