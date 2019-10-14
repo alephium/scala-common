@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 
-trait CORSHandler {
+object CORSHandler {
   private val corsResponseHeaders = List(
     `Access-Control-Allow-Origin`.*,
     `Access-Control-Allow-Credentials`(true),
@@ -19,7 +19,7 @@ trait CORSHandler {
         .withHeaders(`Access-Control-Allow-Methods`(OPTIONS, POST, PUT, GET, DELETE)))
   }
 
-  def corsHandler(r: Route): Route = respondWithHeaders(corsResponseHeaders) {
+  def apply(r: Route): Route = respondWithHeaders(corsResponseHeaders) {
     preflightRequestHandler ~ r
   }
 }
