@@ -18,6 +18,13 @@ object JsonRPC extends StrictLogging {
   val versionKey = "jsonrpc"
   val version    = "2.0"
 
+  def versionCheck(cursor: HCursor): List[String] =
+    cursor.get[String](versionKey) match {
+      case Right(v) if version == v => Nil
+      case Right(v) => List(s"Invalid JSONRPC version '$v'.")
+      case Left(failure) => List(failure.message)
+    }
+
   def versionSet(json: Json): Json = json.mapObject(_.+:(versionKey -> Json.fromString(version)))
 
   case class Error(code: Int, message: String)
@@ -67,8 +74,9 @@ object JsonRPC extends StrictLogging {
     implicit val encoder: Encoder[Request] = deriveEncoder[Request].mapJson(versionSet)
   }
 
-  case class Notification(method: String, params: Json)
+  case class Notification(method: String, params: Option[Json])
   object Notification {
+    implicit val decoder: Decoder[Notification] = deriveDecoder[Notification].validate(versionCheck)
     implicit val encoder: Encoder[Notification] = deriveEncoder[Notification].mapJson(versionSet)
   }
 
@@ -81,6 +89,7 @@ object JsonRPC extends StrictLogging {
 
     case class Success(result: Json, id: Long) extends Response
     object Success {
+      implicit val decoder: Decoder[Success] = deriveDecoder[Success].validate(versionCheck)
       implicit val encoder: Encoder[Success] = deriveEncoder[Success]
     }
     case class Failure(error: Error, id: Option[Long]) extends Response
