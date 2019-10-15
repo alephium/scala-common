@@ -43,7 +43,7 @@ object JsonRPC extends StrictLogging {
   case class RequestUnsafe(
       jsonrpc: String,
       method: String,
-      params: Json,
+      params: Option[Json],
       id: Long
   ) extends WithId {
     def runWith(handler: Handler): Future[Response] = {
@@ -61,13 +61,20 @@ object JsonRPC extends StrictLogging {
     implicit val decoder: Decoder[RequestUnsafe] = deriveDecoder[RequestUnsafe]
   }
 
-  case class Request(method: String, params: Json, id: Long) extends WithId {
-    def paramsAs[A: Decoder]: Either[Response, A] = params.as[A] match {
-      case Right(a) => Right(a)
-      case Left(decodingFailure) =>
-        logger.debug(
-          s"Unable to decode JsonRPC request parameters. ($method@$id: $decodingFailure)")
-        Left(Response.failed(this, Error.InvalidParams))
+  case class Request(method: String, params: Option[Json], id: Long) extends WithId {
+    def paramsAs[A: Decoder]: Either[Response, A] = params match {
+      case None =>
+         logger.debug(
+           s"Unable to decode JsonRPC request parameters. (params is null)")
+         Left(Response.failed(this, Error.InvalidParams))
+      case Some(json) =>
+        json.as[A] match {
+         case Right(a) => Right(a)
+         case Left(decodingFailure) =>
+           logger.debug(
+             s"Unable to decode JsonRPC request parameters. ($method@$id: $decodingFailure)")
+           Left(Response.failed(this, Error.InvalidParams))
+       }
     }
   }
   object Request {
