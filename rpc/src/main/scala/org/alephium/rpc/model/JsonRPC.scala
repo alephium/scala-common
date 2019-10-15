@@ -26,6 +26,7 @@ object JsonRPC extends StrictLogging {
     }
 
   def versionSet(json: Json): Json = json.mapObject(_.+:(versionKey -> Json.fromString(version)))
+  def versionSetAndDropNullValues(json: Json): Json = versionSet(json).dropNullValues
 
   case class Error(code: Int, message: String)
   object Error {
@@ -78,13 +79,13 @@ object JsonRPC extends StrictLogging {
     }
   }
   object Request {
-    implicit val encoder: Encoder[Request] = deriveEncoder[Request].mapJson(versionSet)
+    implicit val encoder: Encoder[Request] = deriveEncoder[Request].mapJson(versionSetAndDropNullValues)
   }
 
   case class Notification(method: String, params: Option[Json])
   object Notification {
     implicit val decoder: Decoder[Notification] = deriveDecoder[Notification].validate(versionCheck)
-    implicit val encoder: Encoder[Notification] = deriveEncoder[Notification].mapJson(versionSet)
+    implicit val encoder: Encoder[Notification] = deriveEncoder[Notification].mapJson(versionSetAndDropNullValues)
   }
 
   sealed trait Response
@@ -110,7 +111,7 @@ object JsonRPC extends StrictLogging {
         case x @ Success(_, _) => x.asJson
         case x @ Failure(_, _) => x.asJson
       }
-      product.mapJson(versionSet)
+      product.mapJson(versionSetAndDropNullValues)
     }
   }
 }
