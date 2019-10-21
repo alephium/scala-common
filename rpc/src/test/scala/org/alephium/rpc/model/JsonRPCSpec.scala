@@ -6,11 +6,11 @@ import scala.util.Success
 import io.circe.Json
 import io.circe.parser._
 import io.circe.syntax._
-import org.scalatest.EitherValues
+import org.scalatest.{EitherValues, Inside}
 
 import org.alephium.util.AlephiumSpec
 
-class JsonRPCSpec extends AlephiumSpec with EitherValues {
+class JsonRPCSpec extends AlephiumSpec with EitherValues with Inside {
 
   val dummy = Future.successful(JsonRPC.Response.Success(Json.Null, 0))
 
@@ -108,13 +108,34 @@ class JsonRPCSpec extends AlephiumSpec with EitherValues {
 
   it should "parse response - success" in {
     val jsonRaw = """{"jsonrpc": "2.0", "result": 42, "id": 1}"""
+    val response = parse(jsonRaw).right.value.as[JsonRPC.Response].right.value
+
+    inside(response) { case JsonRPC.Response.Success(result, id) =>
+      result is Json.fromInt(42)
+      id is 1
+    }
+  }
+
+  it should "parse response - failure" in {
+    val jsonRaw = """{"jsonrpc":"2.0","error":{"code":42,"message":"foo"},"id":1}"""
+    val response = parse(jsonRaw).right.value.as[JsonRPC.Response].right.value
+
+    inside(response) { case JsonRPC.Response.Failure(error, id) =>
+      error is JsonRPC.Error(42, "foo")
+      id is Some(1L)
+    }
+  }
+
+
+  it should "parse success" in {
+    val jsonRaw = """{"jsonrpc": "2.0", "result": 42, "id": 1}"""
     val success = parse(jsonRaw).right.value.as[JsonRPC.Response.Success].right.value
 
     success.result is Json.fromInt(42)
     success.id is 1
   }
 
-  it should "parse response - success - fail on wrong rpc version" in {
+  it should "parse success - fail on wrong rpc version" in {
     val jsonRaw = """{"jsonrpc": "1.0", "result": 42, "id": 1}"""
     val error = parse(jsonRaw).right.value.as[JsonRPC.Response.Success].left.value
     error.message is "Invalid JSONRPC version '1.0'."
