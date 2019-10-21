@@ -112,7 +112,18 @@ object JsonRPC extends StrictLogging {
     case class Failure(error: Error, id: Option[Long]) extends Response
     object Failure {
       import io.circe.generic.auto._ // Note: I hate this!
+      implicit val decoder: Decoder[Failure] = deriveDecoder[Failure].validate(versionCheck)
       implicit val encoder: Encoder[Failure] = deriveEncoder[Failure]
+    }
+
+    implicit val decoder: Decoder[Response] = new Decoder[Response] {
+      final def apply(c: HCursor): Decoder.Result[Response] = {
+        if (c.keys.getOrElse(Nil).find(_ == "result").isDefined) {
+          Success.decoder(c)
+        } else {
+          Failure.decoder(c)
+        }
+      }
     }
 
     implicit val encoder: Encoder[Response] = {
