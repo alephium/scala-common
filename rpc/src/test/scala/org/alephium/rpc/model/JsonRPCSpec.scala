@@ -107,25 +107,26 @@ class JsonRPCSpec extends AlephiumSpec with EitherValues with Inside {
   }
 
   it should "parse response - success" in {
-    val jsonRaw = """{"jsonrpc": "2.0", "result": 42, "id": 1}"""
+    val jsonRaw  = """{"jsonrpc": "2.0", "result": 42, "id": 1}"""
     val response = parse(jsonRaw).right.value.as[JsonRPC.Response].right.value
 
-    inside(response) { case JsonRPC.Response.Success(result, id) =>
-      result is Json.fromInt(42)
-      id is 1
+    inside(response) {
+      case JsonRPC.Response.Success(result, id) =>
+        result is Json.fromInt(42)
+        id is 1
     }
   }
 
   it should "parse response - failure" in {
-    val jsonRaw = """{"jsonrpc":"2.0","error":{"code":42,"message":"foo"},"id":1}"""
+    val jsonRaw  = """{"jsonrpc":"2.0","error":{"code":42,"message":"foo"},"id":1}"""
     val response = parse(jsonRaw).right.value.as[JsonRPC.Response].right.value
 
-    inside(response) { case JsonRPC.Response.Failure(error, id) =>
-      error is JsonRPC.Error(42, "foo")
-      id is Some(1L)
+    inside(response) {
+      case JsonRPC.Response.Failure(error, id) =>
+        error is JsonRPC.Error(42, "foo")
+        id is Some(1L)
     }
   }
-
 
   it should "parse success" in {
     val jsonRaw = """{"jsonrpc": "2.0", "result": 42, "id": 1}"""
