@@ -62,16 +62,16 @@ class JsonRPCSpec extends AlephiumSpec with EitherValues with Inside {
   }
 
   it should "parse notification" in {
-    val jsonRaw = """{"jsonrpc": "2.0", "method": "foobar"}"""
-    val json = parse(jsonRaw).right.value
+    val jsonRaw      = """{"jsonrpc": "2.0", "method": "foobar"}"""
+    val json         = parse(jsonRaw).right.value
     val notification = json.as[JsonRPC.NotificationUnsafe].right.value.asNotification.right.value
     notification.method is "foobar"
   }
 
   it should "parse notification - fail on wrong rpc version" in {
     val jsonRaw = """{"jsonrpc": "1.0", "method": "foobar"}"""
-    val json = parse(jsonRaw).right.value
-    val error = json.as[JsonRPC.NotificationUnsafe].right.value.asNotification.left.value
+    val json    = parse(jsonRaw).right.value
+    val error   = json.as[JsonRPC.NotificationUnsafe].right.value.asNotification.left.value
     error is JsonRPC.Error.InvalidRequest
   }
 
@@ -137,7 +137,7 @@ class JsonRPCSpec extends AlephiumSpec with EitherValues with Inside {
 
   it should "parse success - fail on wrong rpc version" in {
     val jsonRaw = """{"jsonrpc": "1.0", "result": 42, "id": 1}"""
-    val error = parse(jsonRaw).right.value.as[JsonRPC.Response.Success].left.value
+    val error   = parse(jsonRaw).right.value.as[JsonRPC.Response.Success].left.value
     error.message is "Invalid JSONRPC version '1.0'."
   }
 }
