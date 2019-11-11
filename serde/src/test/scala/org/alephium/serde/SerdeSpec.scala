@@ -23,7 +23,7 @@ class SerdeSpec extends AlephiumSpec {
   }
 
   "Serde for Byte" should "serialize Byte into 1 byte" in {
-    Serde[Byte].asInstanceOf[FixedSizeSerde[Byte]].serdeSize is 1
+    byteSerde.asInstanceOf[FixedSizeSerde[Byte]].serdeSize is 1
   }
 
   it should "serde correctly" in {
@@ -42,7 +42,7 @@ class SerdeSpec extends AlephiumSpec {
   checkException(ByteSerde)
 
   "Serde for Int" should "serialize int into 4 bytes" in {
-    Serde[Int].asInstanceOf[FixedSizeSerde[Int]].serdeSize is 4
+    intSerde.asInstanceOf[FixedSizeSerde[Int]].serdeSize is 4
   }
 
   it should "serde correctly" in {
@@ -61,7 +61,7 @@ class SerdeSpec extends AlephiumSpec {
   checkException(IntSerde)
 
   "Serde for Long" should "serialize long into 8 bytes" in {
-    Serde[Long].asInstanceOf[FixedSizeSerde[Long]].serdeSize is 8
+    longSerde.asInstanceOf[FixedSizeSerde[Long]].serdeSize is 8
   }
 
   it should "serde correctly" in {
@@ -98,18 +98,18 @@ class SerdeSpec extends AlephiumSpec {
   "Serde for fixed size sequence" should "serde correctly" in {
     forAll(bytesGen) { input: AVector[Byte] =>
       {
-        val serde  = Serde.fixedSizeSerde(input.length, Serde[Byte])
+        val serde  = Serde.fixedSizeSerde(input.length, byteSerde)
         val output = serde.deserialize(serde.serialize(input)).right.value
         output is input
       }
       {
-        val serde     = Serde.fixedSizeSerde(input.length + 1, Serde[Byte])
+        val serde     = Serde.fixedSizeSerde(input.length + 1, byteSerde)
         val exception = serde.deserialize(ByteString(input.toArray)).left.value
         exception is a[SerdeError.NotEnoughBytes]
       }
 
       if (input.nonEmpty) {
-        val serde     = Serde.fixedSizeSerde(input.length - 1, Serde[Byte])
+        val serde     = Serde.fixedSizeSerde(input.length - 1, byteSerde)
         val exception = serde.deserialize(ByteString(input.toArray)).left.value
         exception is a[SerdeError.WrongFormat]
       }
@@ -118,7 +118,7 @@ class SerdeSpec extends AlephiumSpec {
 
   "Serde for sequence" should "serde correctly" in {
     forAll(bytesGen) { input: AVector[Byte] =>
-      val serde  = Serde.dynamicSizeSerde(Serde[Byte])
+      val serde  = Serde.dynamicSizeSerde(byteSerde)
       val output = serde.deserialize(serde.serialize(input)).right.value
       output is input
     }
