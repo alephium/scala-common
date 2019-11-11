@@ -13,6 +13,8 @@ package object serde {
 
   type SerdeResult[T] = Either[SerdeError, T]
 
+  def serdeImpl[T](implicit sd: Serde[T]): Serde[T] = sd
+
   def serialize[T](input: T)(implicit serializer: Serde[T]): ByteString =
     serializer.serialize(input)
 
@@ -35,6 +37,9 @@ package object serde {
 
   implicit def eitherSerde[A, B](implicit serdeA: Serde[A], serdeB: Serde[B]): Serde[Either[A, B]] =
     new EitherSerde[A, B](serdeA, serdeB)
+
+  def fixedSizeSerde[T: ClassTag](size: Int)(implicit serde: Serde[T]): Serde[AVector[T]] =
+    Serde.fixedSizeSerde[T](size, serde)
 
   implicit def avectorSerde[T: ClassTag](implicit serde: Serde[T]): Serde[AVector[T]] =
     dynamicSizeSerde(serde)
