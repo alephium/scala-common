@@ -15,7 +15,7 @@ if args.goal == 'build':
     run('sbt clean compile')
 
 elif args.goal == 'test':
-    run('sbt clean scalafmtSbt scalastyle test:scalastyle coverage test coverageReport doc')
+    run('sbt clean scalafmtSbt scalafmt test:scalafmt scalastyle test:scalastyle coverage test coverageReport doc')
 
 elif args.goal == 'package':
     run('sbt clean publishLocal')

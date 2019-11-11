@@ -16,7 +16,7 @@ class TimeStampSpec extends AlephiumSpec {
   }
 
   it should "get current millisecond" in {
-    val ts = TimeStamp.now()
+    val ts  = TimeStamp.now()
     val sys = System.currentTimeMillis()
     (ts.millis + 1000 >= sys) is true
   }
@@ -27,12 +27,12 @@ class TimeStampSpec extends AlephiumSpec {
     }
 
     val instant = Instant.now()
-    val ts = TimeStamp.fromMillis(instant.toEpochMilli)
+    val ts      = TimeStamp.fromMillis(instant.toEpochMilli)
 
     check(ts.plusMillis(100), instant.plusMillis(100))
     check(ts.plusSeconds(100), instant.plusSeconds(100))
     check(ts.plusMinutes(100), instant.plus(100, ChronoUnit.MINUTES))
     check(ts.plusHours(100), instant.plus(100, ChronoUnit.HOURS))
-    invalid(ts.plusMillis(- 2 * ts.millis ))
+    invalid(ts.plusMillis(-2 * ts.millis))
   }
 }

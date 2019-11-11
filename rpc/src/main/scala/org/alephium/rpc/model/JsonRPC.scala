@@ -21,11 +21,12 @@ object JsonRPC extends StrictLogging {
   private def versionCheck(cursor: HCursor): List[String] =
     cursor.get[String](versionKey) match {
       case Right(v) if version == v => Nil
-      case Right(v) => List(s"Invalid JSONRPC version '$v'.")
-      case Left(failure) => List(failure.message)
+      case Right(v)                 => List(s"Invalid JSONRPC version '$v'.")
+      case Left(failure)            => List(failure.message)
     }
 
-  private def versionSet(json: Json): Json = json.mapObject(_.+:(versionKey -> Json.fromString(version)))
+  private def versionSet(json: Json): Json =
+    json.mapObject(_.+:(versionKey -> Json.fromString(version)))
   private def versionSetAndDropNullValues(json: Json): Json = versionSet(json).dropNullValues
 
   case class Error(code: Int, message: String)
@@ -65,27 +66,28 @@ object JsonRPC extends StrictLogging {
   case class Request(method: String, params: Option[Json], id: Long) extends WithId {
     def paramsAs[A: Decoder]: Either[Response, A] = params match {
       case None =>
-         logger.debug(
-           s"Unable to decode JsonRPC request parameters. (params is null)")
-         Left(Response.failed(this, Error.InvalidParams))
+        logger.debug(s"Unable to decode JsonRPC request parameters. (params is null)")
+        Left(Response.failed(this, Error.InvalidParams))
       case Some(json) =>
         json.as[A] match {
-         case Right(a) => Right(a)
-         case Left(decodingFailure) =>
-           logger.debug(
-             s"Unable to decode JsonRPC request parameters. ($method@$id: $decodingFailure)")
-           Left(Response.failed(this, Error.InvalidParams))
-       }
+          case Right(a) => Right(a)
+          case Left(decodingFailure) =>
+            logger.debug(
+              s"Unable to decode JsonRPC request parameters. ($method@$id: $decodingFailure)")
+            Left(Response.failed(this, Error.InvalidParams))
+        }
     }
   }
   object Request {
-    implicit val encoder: Encoder[Request] = deriveEncoder[Request].mapJson(versionSetAndDropNullValues)
+    implicit val encoder: Encoder[Request] =
+      deriveEncoder[Request].mapJson(versionSetAndDropNullValues)
   }
 
-  case class NotificationUnsafe(jsonrpc:String, method: String, params: Option[Json]) {
+  case class NotificationUnsafe(jsonrpc: String, method: String, params: Option[Json]) {
     def asNotification: Either[Error, Notification] =
-      if (jsonrpc == JsonRPC.version) { Right(Notification(method, params)) }
-      else { Left(Error.InvalidRequest) }
+      if (jsonrpc == JsonRPC.version) { Right(Notification(method, params)) } else {
+        Left(Error.InvalidRequest)
+      }
   }
 
   object NotificationUnsafe {
@@ -94,7 +96,8 @@ object JsonRPC extends StrictLogging {
 
   case class Notification(method: String, params: Option[Json])
   object Notification {
-    implicit val encoder: Encoder[Notification] = deriveEncoder[Notification].mapJson(versionSetAndDropNullValues)
+    implicit val encoder: Encoder[Notification] =
+      deriveEncoder[Notification].mapJson(versionSetAndDropNullValues)
   }
 
   sealed trait Response
