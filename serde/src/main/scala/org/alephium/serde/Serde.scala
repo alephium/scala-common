@@ -87,7 +87,7 @@ trait FixedSizeSerde[T] extends Serde[T] {
 }
 
 object Serde extends ProductSerde {
-  object ByteSerde extends FixedSizeSerde[Byte] {
+  private[serde] object ByteSerde extends FixedSizeSerde[Byte] {
     override val serdeSize: Int = java.lang.Byte.BYTES
 
     override def serialize(input: Byte): ByteString = {
@@ -98,7 +98,7 @@ object Serde extends ProductSerde {
       deserialize0(input, _.apply(0))
   }
 
-  object IntSerde extends FixedSizeSerde[Int] {
+  private[serde] object IntSerde extends FixedSizeSerde[Int] {
     override val serdeSize: Int = java.lang.Integer.BYTES
 
     override def serialize(input: Int): ByteString = {
@@ -111,7 +111,7 @@ object Serde extends ProductSerde {
       deserialize0(input, _.asByteBuffer.getInt())
   }
 
-  object LongSerde extends FixedSizeSerde[Long] {
+  private[serde] object LongSerde extends FixedSizeSerde[Long] {
     override val serdeSize: Int = java.lang.Long.BYTES
 
     override def serialize(input: Long): ByteString = {
@@ -124,7 +124,7 @@ object Serde extends ProductSerde {
       deserialize0(input, _.asByteBuffer.getLong())
   }
 
-  object ByteStringSerde extends Serde[ByteString] {
+  private[serde] object ByteStringSerde extends Serde[ByteString] {
     override def serialize(input: ByteString): ByteString = {
       IntSerde.serialize(input.size) ++ input
     }
@@ -153,7 +153,7 @@ object Serde extends ProductSerde {
     val rightB: Byte = right.toByte
   }
 
-  class OptionSerde[T](serde: Serde[T]) extends Serde[Option[T]] {
+  private[serde] class OptionSerde[T](serde: Serde[T]) extends Serde[Option[T]] {
     override def serialize(input: Option[T]): ByteString = input match {
       case None    => ByteSerde.serialize(Flags.noneB)
       case Some(t) => ByteSerde.serialize(Flags.someB) ++ serde.serialize(t)
@@ -173,7 +173,8 @@ object Serde extends ProductSerde {
     }
   }
 
-  class EitherSerde[A, B](serdeA: Serde[A], serdeB: Serde[B]) extends Serde[Either[A, B]] {
+  private[serde] class EitherSerde[A, B](serdeA: Serde[A], serdeB: Serde[B])
+      extends Serde[Either[A, B]] {
     override def serialize(input: Either[A, B]): ByteString = input match {
       case Left(a)  => ByteSerde.serialize(Flags.leftB) ++ serdeA.serialize(a)
       case Right(b) => ByteSerde.serialize(Flags.rightB) ++ serdeB.serialize(b)
@@ -193,7 +194,7 @@ object Serde extends ProductSerde {
     }
   }
 
-  class AVectorDe[T: ClassTag](deserializer: Deserializer[T]) {
+  private[serde] class AVectorDe[T: ClassTag](deserializer: Deserializer[T]) {
     @tailrec
     final def _deserialize(rest: ByteString,
                            itemCnt: Int,
@@ -209,9 +210,7 @@ object Serde extends ProductSerde {
     }
   }
 
-  def apply[T](implicit T: Serde[T]): Serde[T] = T
-
-  def bytesSerde(bytes: Int): Serde[ByteString] = new FixedSizeSerde[ByteString] {
+  private[serde] def bytesSerde(bytes: Int): Serde[ByteString] = new FixedSizeSerde[ByteString] {
     override val serdeSize: Int = bytes
 
     override def serialize(bs: ByteString): ByteString = {
@@ -223,7 +222,7 @@ object Serde extends ProductSerde {
       deserialize0(input, identity)
   }
 
-  def fixedSizeSerde[T: ClassTag](size: Int, serde: Serde[T]): Serde[AVector[T]] =
+  private[serde] def fixedSizeSerde[T: ClassTag](size: Int, serde: Serde[T]): Serde[AVector[T]] =
     new AVectorDe[T](serde) with Serde[AVector[T]] {
       override def serialize(input: AVector[T]): ByteString = {
         input.map(serde.serialize).fold(ByteString.empty)(_ ++ _)
@@ -240,7 +239,7 @@ object Serde extends ProductSerde {
     }
   }
 
-  class AVectorDeserializer[T: ClassTag](deserializer: Deserializer[T])
+  private[serde] class AVectorDeserializer[T: ClassTag](deserializer: Deserializer[T])
       extends AVectorDe[T](deserializer)
       with Deserializer[AVector[T]] {
     override def _deserialize(input: ByteString): SerdeResult[(AVector[T], ByteString)] = {
@@ -251,7 +250,7 @@ object Serde extends ProductSerde {
     }
   }
 
-  def dynamicSizeSerde[T: ClassTag](serde: Serde[T]): Serde[AVector[T]] =
+  private[serde] def dynamicSizeSerde[T: ClassTag](serde: Serde[T]): Serde[AVector[T]] =
     new AVectorDe[T](serde) with Serde[AVector[T]] {
       override def serialize(input: AVector[T]): ByteString = {
         input.map(serde.serialize).fold(IntSerde.serialize(input.length))(_ ++ _)
