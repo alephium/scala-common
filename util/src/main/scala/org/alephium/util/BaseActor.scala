@@ -1,7 +1,5 @@
 package org.alephium.util
 
-import scala.concurrent.duration.FiniteDuration
-
 import akka.actor._
 import org.slf4j.LoggerFactory
 
@@ -17,9 +15,9 @@ trait BaseActor extends Actor with ActorLogging {
   }
 
   // Note: no periodic scheduler, use Akka Timers instead which could be cancelled automatically
-  def scheduleOnce(receiver: ActorRef, message: Any, delay: FiniteDuration): Unit = {
+  def scheduleOnce(receiver: ActorRef, message: Any, delay: Duration): Unit = {
     context.system.scheduler
-      .scheduleOnce(delay, receiver, message)(context.dispatcher, context.self)
+      .scheduleOnce(delay.asScala, receiver, message)(context.dispatcher, context.self)
     ()
   }
 }
