@@ -3,6 +3,7 @@ package org.alephium.util
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
+import org.scalacheck.Gen
 import org.scalatest.Assertion
 
 class TimeStampSpec extends AlephiumSpec {
@@ -34,5 +35,27 @@ class TimeStampSpec extends AlephiumSpec {
     check(ts.plusMinutes(100), instant.plus(100, ChronoUnit.MINUTES))
     check(ts.plusHours(100), instant.plus(100, ChronoUnit.HOURS))
     invalid(ts.plusMillis(-2 * ts.millis))
+  }
+
+  it should "operate correctly" in {
+    forAll(Gen.chooseNum(0, Long.MaxValue)) { l0 =>
+      forAll(Gen.chooseNum(0, l0)) { l1 =>
+        val ts = TimeStamp.fromMillis(l0 / 2)
+        val dt = Duration.ofMillis(l1 / 2)
+        (ts + dt).millis is ts.millis + dt.millis
+        (ts - dt).millis is ts.millis - dt.millis
+
+        val ts0 = TimeStamp.fromMillis(l0)
+        val ts1 = TimeStamp.fromMillis(l1)
+        (ts0 diff ts1).millis is l0 - l1
+        if (l0 != l1) {
+          ts0 isBefore ts1 is false
+          ts1 isBefore ts0 is true
+        } else {
+          ts0 isBefore ts1 is false
+          ts1 isBefore ts0 is false
+        }
+      }
+    }
   }
 }
