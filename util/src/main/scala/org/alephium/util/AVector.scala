@@ -447,6 +447,30 @@ abstract class AVector[@sp A](implicit val ct: ClassTag[A]) extends Serializable
     minA
   }
 
+  def split(): AVector[AVector[A]] = {
+    splitBy(identity)
+  }
+
+  def splitBy[B](f: A => B): AVector[AVector[A]]= {
+    if (isEmpty) AVector.empty
+    else {
+      var prev = f(head)
+      var acc = AVector.empty[A]
+      var res = AVector.empty[AVector[A]]
+      foreach { elem =>
+        val current = f(elem)
+        if (current == prev) {
+          acc = acc :+ elem
+        } else {
+          res = res :+ acc
+          acc = AVector(elem)
+          prev = current
+        }
+      }
+      res :+ acc
+    }
+  }
+
   def replace(i: Int, a: A): AVector[A] = {
     assert(i >= 0 && i < length)
     val arr = Array.ofDim[A](length)

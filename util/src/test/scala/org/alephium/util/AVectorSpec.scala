@@ -431,6 +431,20 @@ class IntAVectorSpec extends AVectorSpec[Int] {
     }
   }
 
+  it should "splitBy" in {
+    val vc0 = AVector.fill(1)(0)
+    val vc1 = AVector.fill(2)(1)
+    val vc2 = AVector.fill(3)(2)
+
+    AVector.empty[Int].split() is AVector.empty[AVector[Int]]
+    vc0.split() is AVector(vc0)
+    vc1.split() is AVector(vc1)
+    vc2.split() is AVector(vc2)
+    (vc0 ++ vc1).split() is AVector(vc0, vc1)
+    (vc2 ++ vc1).split() is AVector(vc2, vc1)
+    (vc0 ++ vc1 ++ vc2).split() is AVector(vc0, vc1, vc2)
+  }
+
   it should "create matrix using tabulate" in new Fixture {
     forAll(sizeGen, sizeGen) { (n1, n2) =>
       val matrix = AVector.tabulate[Int](n1, n2)(_ + _)
