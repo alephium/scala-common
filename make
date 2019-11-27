@@ -12,11 +12,11 @@ def run(cmd):
     os.system(cmd)
 
 if args.goal == 'build':
-    run('sbt clean compile')
+    run('sbt compile')
 
 elif args.goal == 'test':
-    run('sbt clean scalafmtSbt scalafmt test:scalafmt scalastyle test:scalastyle coverage test coverageReport doc')
+    run('sbt scalafmtSbt scalafmt test:scalafmt scalastyle test:scalastyle coverage test coverageReport doc')
 
 elif args.goal == 'package':
-    run('sbt clean publishLocal')
+    run('sbt publishLocal')
 

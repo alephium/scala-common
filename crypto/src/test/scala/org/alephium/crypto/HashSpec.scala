@@ -9,7 +9,7 @@ import org.alephium.util.Hex._
 
 class HashSpec extends AlephiumSpec {
 
-  def check[T <: RandomBytes](provider: HashCompanion[T], message: String, expected: ByteString)(
+  def check[T <: RandomBytes](provider: HashSchema[T], message: String, expected: ByteString)(
       implicit serde: Serde[T]): Unit = {
     provider.getClass.getSimpleName should "hash correctly" in {
       val output = provider.hash(message)
@@ -23,7 +23,7 @@ class HashSpec extends AlephiumSpec {
     }
   }
 
-  def check[T <: RandomBytes](provider: HashCompanion[T], tests: Map[String, ByteString])(
+  def check[T <: RandomBytes](provider: HashSchema[T], tests: Map[String, ByteString])(
       implicit serde: Serde[T]): Unit = {
     provider.getClass.getSimpleName should "hash correctly" in {
       for ((message, expected) <- tests) {
