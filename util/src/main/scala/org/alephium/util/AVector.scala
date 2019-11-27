@@ -451,19 +451,19 @@ abstract class AVector[@sp A](implicit val ct: ClassTag[A]) extends Serializable
     splitBy(identity)
   }
 
-  def splitBy[B](f: A => B): AVector[AVector[A]]= {
+  def splitBy[B](f: A => B): AVector[AVector[A]] = {
     if (isEmpty) AVector.empty
     else {
       var prev = f(head)
-      var acc = AVector.empty[A]
-      var res = AVector.empty[AVector[A]]
+      var acc  = AVector.empty[A]
+      var res  = AVector.empty[AVector[A]]
       foreach { elem =>
         val current = f(elem)
         if (current == prev) {
           acc = acc :+ elem
         } else {
-          res = res :+ acc
-          acc = AVector(elem)
+          res  = res :+ acc
+          acc  = AVector(elem)
           prev = current
         }
       }

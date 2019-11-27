@@ -9,7 +9,19 @@ import org.bouncycastle.crypto.Digest
 
 import org.alephium.serde._
 
-abstract class HashCompanion[T: TypeTag](unsafeFrom: ByteString => T, toBytes: T => ByteString)
+object HashSchema {
+  def unsafeKeccak256(bs: ByteString): Keccak256 = {
+    assert(bs.size == keccak256Length)
+    new Keccak256(bs)
+  }
+
+  def unsafeSha256(bs: ByteString): Sha256 = {
+    assert(bs.size == sha256Length)
+    new Sha256(bs)
+  }
+}
+
+abstract class HashSchema[T: TypeTag](unsafeFrom: ByteString => T, toBytes: T => ByteString)
     extends RandomBytes.Companion[T](unsafeFrom, toBytes) {
   def provider: Digest
 
