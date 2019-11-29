@@ -485,6 +485,10 @@ abstract class AVector[@sp A](implicit val ct: ClassTag[A]) extends Serializable
     arr
   }
 
+  def toSet: Set[A] = {
+    toIterable.toSet
+  }
+
   def toIterable: Iterable[A] = {
     new Iterable[A] {
       override def size: Int    = length
