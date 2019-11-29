@@ -11,10 +11,10 @@ class ForestSpec extends AlephiumSpec {
     val forest = Forest.build[Int, Int](values, identity, links.apply).get
     forest.roots.map(_.key).toSet is roots.toSet
 
-    def iter(node: Node[Int]): Unit = {
+    def iter(node: Node[Int, Int]): Unit = {
+      links.remove(node.key)
       node.children.foreach { child =>
         links(child.key) is node.key
-        links.remove(child.key)
         iter(child)
       }
     }
@@ -27,23 +27,24 @@ class ForestSpec extends AlephiumSpec {
   }
 
   it should "build path" in {
-    check(AVector(0), List(1 -> 0))
-    check(AVector(0), List(1 -> 0, 2 -> 1))
-    check(AVector(0), List(1 -> 0, 2 -> 1, 3 -> 2))
-    check(AVector(0), List(1 -> 0, 2 -> 1, 3 -> 2, 4 -> 3))
+    check(AVector(1), List(1 -> 0))
+    check(AVector(1), List(1 -> 0, 2 -> 1))
+    check(AVector(1), List(1 -> 0, 2 -> 1, 3 -> 2))
+    check(AVector(1), List(1 -> 0, 2 -> 1, 3 -> 2, 4 -> 3))
   }
 
   it should "build tree" in {
-    check(AVector(0), List(1 -> 0, 2 -> 0))
-    check(AVector(0), List(1 -> 0, 2 -> 0, 3 -> 1, 4 -> 1))
-    check(AVector(0), List(1 -> 0, 2 -> 0, 3 -> 1, 4 -> 1, 5 -> 2))
-    check(AVector(0), List(1 -> 0, 2 -> 0, 3 -> 1, 4 -> 2, 5 -> 2))
+    check(AVector(1, 2), List(1 -> 0, 2 -> 0))
+    check(AVector(1, 2), List(1 -> 0, 2 -> 0, 3 -> 1, 4 -> 1))
+    check(AVector(1, 2), List(1 -> 0, 2 -> 0, 3 -> 1, 4 -> 1, 5 -> 2))
+    check(AVector(1, 2), List(1 -> 0, 2 -> 0, 3 -> 1, 4 -> 2, 5 -> 2))
   }
 
   it should "build forest" in {
-    check(AVector(0, 1), List(2 -> 0, 3 -> 1))
-    check(AVector(0, 1), List(2 -> 0, 3 -> 0, 4 -> 1, 5 -> 1))
-    check(AVector(0, 1), List(2 -> 0, 3 -> 0, 4 -> 1, 5 -> 1, 6 -> 2, 7 -> 5))
+    check(AVector(2, 3), List(2 -> 0, 3 -> 1))
+    /* indention split */
+    check(AVector(2, 3, 4, 5), List(2 -> 0, 3 -> 0, 4 -> 1, 5 -> 1))
+    check(AVector(2, 3, 4, 5), List(2 -> 0, 3 -> 0, 4 -> 1, 5 -> 1, 6 -> 2, 7 -> 5))
   }
 
   def invalid(pairs: List[(Int, Int)]): Assertion = {
