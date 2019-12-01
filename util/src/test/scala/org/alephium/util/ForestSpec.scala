@@ -5,7 +5,7 @@ import scala.collection.mutable
 import org.scalatest.Assertion
 
 class ForestSpec extends AlephiumSpec {
-  def check(roots: AVector[Int], pairs: List[(Int, Int)]): Assertion = {
+  def checkBuild(roots: AVector[Int], pairs: List[(Int, Int)]): Assertion = {
     val links  = mutable.HashMap.empty ++ pairs
     val values = AVector.from(pairs.map(_._1))
     val forest = Forest.build[Int, Int](values, identity, links.apply).get
@@ -23,28 +23,42 @@ class ForestSpec extends AlephiumSpec {
   }
 
   it should "build empty forest" in {
-    check(AVector.empty[Int], List.empty)
+    checkBuild(AVector.empty[Int], List.empty)
   }
 
+  // Paths
+  val path0 = List(1 -> 0)
+  val path1 = List(1 -> 0, 2 -> 1)
+  val path2 = List(1 -> 0, 2 -> 1, 3 -> 2)
+  val path3 = List(1 -> 0, 2 -> 1, 3 -> 2, 4 -> 3)
+  // Trees
+  val tree0 = List(1 -> 0, 2 -> 0)
+  val tree1 = List(1 -> 0, 2 -> 0, 3 -> 1, 4 -> 1)
+  val tree2 = List(1 -> 0, 2 -> 0, 3 -> 1, 4 -> 1, 5 -> 2)
+  val tree3 = List(1 -> 0, 2 -> 0, 3 -> 1, 4 -> 2, 5 -> 2)
+  // Forests
+  val forest0 = List(2 -> 0, 3 -> 1)
+  val forest1 = List(2 -> 0, 3 -> 0, 4 -> 1, 5 -> 1)
+  val forest2 = List(2 -> 0, 3 -> 0, 4 -> 1, 5 -> 1, 6 -> 2, 7 -> 5)
+
   it should "build path" in {
-    check(AVector(1), List(1 -> 0))
-    check(AVector(1), List(1 -> 0, 2 -> 1))
-    check(AVector(1), List(1 -> 0, 2 -> 1, 3 -> 2))
-    check(AVector(1), List(1 -> 0, 2 -> 1, 3 -> 2, 4 -> 3))
+    checkBuild(AVector(1), path0)
+    checkBuild(AVector(1), path1)
+    checkBuild(AVector(1), path2)
+    checkBuild(AVector(1), path3)
   }
 
   it should "build tree" in {
-    check(AVector(1, 2), List(1 -> 0, 2 -> 0))
-    check(AVector(1, 2), List(1 -> 0, 2 -> 0, 3 -> 1, 4 -> 1))
-    check(AVector(1, 2), List(1 -> 0, 2 -> 0, 3 -> 1, 4 -> 1, 5 -> 2))
-    check(AVector(1, 2), List(1 -> 0, 2 -> 0, 3 -> 1, 4 -> 2, 5 -> 2))
+    checkBuild(AVector(1, 2), tree0)
+    checkBuild(AVector(1, 2), tree1)
+    checkBuild(AVector(1, 2), tree2)
+    checkBuild(AVector(1, 2), tree3)
   }
 
   it should "build forest" in {
-    check(AVector(2, 3), List(2 -> 0, 3 -> 1))
-    /* indentation split */
-    check(AVector(2, 3, 4, 5), List(2 -> 0, 3 -> 0, 4 -> 1, 5 -> 1))
-    check(AVector(2, 3, 4, 5), List(2 -> 0, 3 -> 0, 4 -> 1, 5 -> 1, 6 -> 2, 7 -> 5))
+    checkBuild(AVector(2, 3), forest0)
+    checkBuild(AVector(2, 3, 4, 5), forest1)
+    checkBuild(AVector(2, 3, 4, 5), forest2)
   }
 
   def build(pairs: List[(Int, Int)]): Option[Forest[Int, Int]] = {
@@ -73,18 +87,15 @@ class ForestSpec extends AlephiumSpec {
   }
 
   it should "remove nodes" in {
-    // path
-    checkRemoveNode(List(1 -> 0, 2 -> 1, 3 -> 2, 4 -> 3), 0, None, 1)
-    checkRemoveNode(List(1 -> 0, 2 -> 1, 3 -> 2, 4 -> 3), 1, Some(1), 1)
-    // tree
-    checkRemoveNode(List(1 -> 0, 2 -> 0, 3 -> 1, 4 -> 1, 5 -> 2), 0, None, 2)
-    checkRemoveNode(List(1 -> 0, 2 -> 0, 3 -> 1, 4 -> 1, 5 -> 2), 1, Some(1), 3)
-    checkRemoveNode(List(1 -> 0, 2 -> 0, 3 -> 1, 4 -> 1, 5 -> 2), 2, Some(2), 2)
-    // forest
-    checkRemoveNode(List(2 -> 0, 3 -> 0, 4 -> 1, 5 -> 1, 6 -> 2, 7 -> 5), 0, None, 4)
-    checkRemoveNode(List(2 -> 0, 3 -> 0, 4 -> 1, 5 -> 1, 6 -> 2, 7 -> 5), 1, None, 4)
-    checkRemoveNode(List(2 -> 0, 3 -> 0, 4 -> 1, 5 -> 1, 6 -> 2, 7 -> 5), 2, Some(2), 4)
-    checkRemoveNode(List(2 -> 0, 3 -> 0, 4 -> 1, 5 -> 1, 6 -> 2, 7 -> 5), 3, Some(3), 3)
+    checkRemoveNode(path3, 0, None, 1)
+    checkRemoveNode(path3, 1, Some(1), 1)
+    checkRemoveNode(tree2, 0, None, 2)
+    checkRemoveNode(tree2, 1, Some(1), 3)
+    checkRemoveNode(tree2, 2, Some(2), 2)
+    checkRemoveNode(forest2, 0, None, 4)
+    checkRemoveNode(forest2, 1, None, 4)
+    checkRemoveNode(forest2, 2, Some(2), 4)
+    checkRemoveNode(forest2, 3, Some(3), 3)
   }
 
   def checkRemoveBranch(pairs: List[(Int, Int)],
@@ -97,17 +108,14 @@ class ForestSpec extends AlephiumSpec {
   }
 
   it should "remove branch" in {
-    // path
-    checkRemoveBranch(List(1 -> 0, 2 -> 1, 3 -> 2, 4 -> 3), 0, None, 1)
-    checkRemoveBranch(List(1 -> 0, 2 -> 1, 3 -> 2, 4 -> 3), 1, Some(1), 0)
-    // tree
-    checkRemoveBranch(List(1 -> 0, 2 -> 0, 3 -> 1, 4 -> 1, 5 -> 2), 0, None, 2)
-    checkRemoveBranch(List(1 -> 0, 2 -> 0, 3 -> 1, 4 -> 1, 5 -> 2), 1, Some(1), 1)
-    checkRemoveBranch(List(1 -> 0, 2 -> 0, 3 -> 1, 4 -> 1, 5 -> 2), 2, Some(2), 1)
-    // forest
-    checkRemoveBranch(List(2 -> 0, 3 -> 0, 4 -> 1, 5 -> 1, 6 -> 2, 7 -> 5), 0, None, 4)
-    checkRemoveBranch(List(2 -> 0, 3 -> 0, 4 -> 1, 5 -> 1, 6 -> 2, 7 -> 5), 1, None, 4)
-    checkRemoveBranch(List(2 -> 0, 3 -> 0, 4 -> 1, 5 -> 1, 6 -> 2, 7 -> 5), 2, Some(2), 3)
-    checkRemoveBranch(List(2 -> 0, 3 -> 0, 4 -> 1, 5 -> 1, 6 -> 2, 7 -> 5), 3, Some(3), 3)
+    checkRemoveBranch(path3, 0, None, 1)
+    checkRemoveBranch(path3, 1, Some(1), 0)
+    checkRemoveBranch(tree2, 0, None, 2)
+    checkRemoveBranch(tree2, 1, Some(1), 1)
+    checkRemoveBranch(tree2, 2, Some(2), 1)
+    checkRemoveBranch(forest2, 0, None, 4)
+    checkRemoveBranch(forest2, 1, None, 4)
+    checkRemoveBranch(forest2, 2, Some(2), 3)
+    checkRemoveBranch(forest2, 3, Some(3), 3)
   }
 }
