@@ -8,7 +8,7 @@ class ForestSpec extends AlephiumSpec {
   def checkBuild(roots: AVector[Int], pairs: List[(Int, Int)]): Assertion = {
     val links  = mutable.HashMap.empty ++ pairs
     val values = AVector.from(pairs.map(_._1))
-    val forest = Forest.build[Int, Int](values, identity, links.apply).get
+    val forest = Forest.tryBuild[Int, Int](values, identity, links.apply).get
     forest.roots.map(_.key).toSet is roots.toSet
 
     def iter(node: Node[Int, Int]): Unit = {
@@ -24,6 +24,14 @@ class ForestSpec extends AlephiumSpec {
 
   it should "build empty forest" in {
     checkBuild(AVector.empty[Int], List.empty)
+  }
+
+  it should "build for one value" in {
+    val forest = Forest.build[Int, Int](0, _ + 1)
+    forest.roots.size is 1
+    forest.roots.head.key is 1
+    forest.roots.head.value is 0
+    forest.roots.head.children.isEmpty is true
   }
 
   // Paths
@@ -64,7 +72,7 @@ class ForestSpec extends AlephiumSpec {
   def build(pairs: List[(Int, Int)]): Option[Forest[Int, Int]] = {
     val links  = mutable.HashMap.empty ++ pairs
     val values = AVector.from(pairs.map(_._1))
-    Forest.build[Int, Int](values, identity, links.apply)
+    Forest.tryBuild[Int, Int](values, identity, links.apply)
   }
 
   def invalid(pairs: List[(Int, Int)]): Assertion = {

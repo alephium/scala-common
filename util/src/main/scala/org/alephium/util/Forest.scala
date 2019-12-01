@@ -4,7 +4,7 @@ import scala.collection.mutable
 
 object Forest {
   // Note: the parent node should comes first in values; otherwise return None
-  def build[K, T](values: AVector[T], toKey: T => K, toParent: T => K): Option[Forest[K, T]] = {
+  def tryBuild[K, T](values: AVector[T], toKey: T => K, toParent: T => K): Option[Forest[K, T]] = {
     val rootParents = mutable.HashMap.empty[K, mutable.ArrayBuffer[Node[K, T]]]
     val nodes       = mutable.HashMap.empty[K, Node[K, T]]
     values.foreach { value =>
@@ -31,6 +31,11 @@ object Forest {
     val roots = mutable.ArrayBuffer.empty[Node[K, T]]
     rootParents.values.foreach(roots ++= _)
     Some(Forest(roots))
+  }
+
+  def build[K, T](value: T, toKey: T => K): Forest[K, T] = {
+    val node = Node(toKey(value), value, mutable.ArrayBuffer.empty[Node[K, T]])
+    Forest(mutable.ArrayBuffer(node))
   }
 }
 
