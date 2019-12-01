@@ -36,27 +36,31 @@ object Forest {
 
 // Note: we use ArrayBuffer instead of Set because the number of forks in blockchain is usually small
 case class Forest[K, T](roots: mutable.ArrayBuffer[Node[K, T]]) {
-  def removeRootNode(key: K): Boolean = {
+  def isEmpty: Boolean = roots.isEmpty
+
+  def nonEmpty: Boolean = roots.nonEmpty
+
+  def removeRootNode(key: K): Option[Node[K, T]] = {
     withRemove(key) { (index, node) =>
       roots.remove(index)
       roots.appendAll(node.children)
     }
   }
 
-  def removeBranch(key: K): Boolean = {
+  def removeBranch(key: K): Option[Node[K, T]] = {
     withRemove(key) { (index, _) =>
       roots.remove(index)
       ()
     }
   }
 
-  def withRemove(key: K)(f: (Int, Node[K, T]) => Unit): Boolean = {
+  private def withRemove(key: K)(f: (Int, Node[K, T]) => Unit): Option[Node[K, T]] = {
     val index = roots.indexWhere(_.key == key)
-    if (index == -1) false
+    if (index == -1) None
     else {
       val node = roots(index)
       f(index, node)
-      true
+      Some(node)
     }
   }
 }
