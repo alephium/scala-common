@@ -45,6 +45,14 @@ case class Forest[K, T](roots: mutable.ArrayBuffer[Node[K, T]]) {
 
   def nonEmpty: Boolean = roots.nonEmpty
 
+  def contains(key: K): Boolean = {
+    roots.exists(_.contains(key))
+  }
+
+  def flatten: AVector[Node[K, T]] = {
+    roots.foldLeft(AVector.empty[Node[K, T]])(_ ++ _.flatten)
+  }
+
   def removeRootNode(key: K): Option[Node[K, T]] = {
     withRemove(key) { (index, node) =>
       roots.remove(index)
@@ -68,6 +76,19 @@ case class Forest[K, T](roots: mutable.ArrayBuffer[Node[K, T]]) {
       Some(node)
     }
   }
+
+  // Note: the other forest might connected to this current forest
+  def simpleMerge(another: Forest[K, T]): Unit = {
+    roots.appendAll(another.roots)
+  }
 }
 
-case class Node[K, T](key: K, value: T, children: mutable.ArrayBuffer[Node[K, T]])
+case class Node[K, T](key: K, value: T, children: mutable.ArrayBuffer[Node[K, T]]) {
+  def contains(another: K): Boolean = {
+    key == another || children.exists(_.contains(another))
+  }
+
+  def flatten: AVector[Node[K, T]] = {
+    AVector(this) ++ children.foldLeft(AVector.empty[Node[K, T]])(_ ++ _.flatten)
+  }
+}

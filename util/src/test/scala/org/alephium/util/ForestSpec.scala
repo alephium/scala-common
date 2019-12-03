@@ -48,6 +48,9 @@ class ForestSpec extends AlephiumSpec {
   val forest0 = List(2 -> 0, 3 -> 1)
   val forest1 = List(2 -> 0, 3 -> 0, 4 -> 1, 5 -> 1)
   val forest2 = List(2 -> 0, 3 -> 0, 4 -> 1, 5 -> 1, 6 -> 2, 7 -> 5)
+  // All
+  val tests =
+    List(path0, path1, path2, path3, tree0, tree1, tree2, tree3, forest0, forest1, forest2)
 
   it should "build path" in {
     checkBuild(AVector(1), path0)
@@ -83,6 +86,28 @@ class ForestSpec extends AlephiumSpec {
     invalid(List(2 -> 1, 1 -> 0))
     invalid(List(1 -> 0, 4 -> 2, 2 -> 0, 3 -> 1, 5 -> 2))
     invalid(List(2 -> 0, 7 -> 5, 3 -> 0, 4 -> 1, 5 -> 1, 6 -> 2))
+  }
+
+  def checkContains(pairs: List[(Int, Int)]): Assertion = {
+    val forest = build(pairs).get
+    forest.contains(0) is false
+    pairs.map(_._1).foreach(key => forest.contains(key) is true)
+    forest.contains(-1) is false
+  }
+
+  it should "check contains" in {
+    tests.foreach(checkContains)
+  }
+
+  def checkFlatten(pairs: List[(Int, Int)]): Assertion = {
+    val forest = build(pairs).get
+    val nodes  = forest.flatten
+    nodes.map(_.key).toSet is pairs.map(_._1).toSet
+    nodes.map(_.value).toSet is pairs.map(_._1).toSet
+  }
+
+  it should "check flatten" in {
+    tests.foreach(checkFlatten)
   }
 
   def checkRemoveNode(pairs: List[(Int, Int)],
