@@ -1,0 +1,45 @@
+package org.alephium.util
+
+import scala.util.Random
+
+import org.scalatest.EitherValues._
+
+class EitherFSpec extends AlephiumSpec {
+  it should "foreach for positive case" in {
+    forAll { ns: Seq[Int] =>
+      var sum    = 0
+      val result = EitherF.foreach[Int, Unit](ns, n => Right(sum += n))
+      result.isRight is true
+      sum is ns.sum
+    }
+  }
+
+  it should "foreach for negative case" in {
+    forAll { ns: Seq[Int] =>
+      if (ns.nonEmpty) {
+        val r      = ns(Random.nextInt(ns.length))
+        val result = EitherF.foreach[Int, Unit](ns, n => if (n.equals(r)) Left(()) else Right(()))
+        result.isLeft is true
+      }
+    }
+  }
+
+  it should "fold for positive case" in {
+    forAll { ns: Seq[Int] =>
+      val result = EitherF.fold[Int, Unit, Int](ns, 0) { case (acc, n) => Right(acc + n) }
+      result.right.value is ns.sum
+    }
+  }
+
+  it should "fold for negative case" in {
+    forAll { ns: Seq[Int] =>
+      if (ns.nonEmpty) {
+        val r = ns(Random.nextInt(ns.length))
+        val result = EitherF.fold[Int, Unit, Unit](ns, ()) {
+          case (_, n) => if (n.equals(r)) Left(()) else Right(())
+        }
+        result.isLeft is true
+      }
+    }
+  }
+}
