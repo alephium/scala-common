@@ -2,7 +2,7 @@ package org.alephium.util
 
 object EitherF {
   // scalastyle:off return
-  def foreach[E, L](elems: Iterable[E], f: E => Either[L, Unit]): Either[L, Unit] = {
+  def foreach[E, L](elems: Iterable[E])(f: E => Either[L, Unit]): Either[L, Unit] = {
     elems.foreach { e =>
       f(e) match {
         case Left(l)  => return Left(l)
