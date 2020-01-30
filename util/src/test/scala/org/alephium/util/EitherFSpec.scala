@@ -8,7 +8,7 @@ class EitherFSpec extends AlephiumSpec {
   it should "foreach for positive case" in {
     forAll { ns: Seq[Int] =>
       var sum    = 0
-      val result = EitherF.foreach[Int, Unit](ns, n => Right(sum += n))
+      val result = EitherF.foreach[Int, Unit](ns)(n => Right(sum += n))
       result.isRight is true
       sum is ns.sum
     }
@@ -18,7 +18,7 @@ class EitherFSpec extends AlephiumSpec {
     forAll { ns: Seq[Int] =>
       if (ns.nonEmpty) {
         val r      = ns(Random.nextInt(ns.length))
-        val result = EitherF.foreach[Int, Unit](ns, n => if (n.equals(r)) Left(()) else Right(()))
+        val result = EitherF.foreach[Int, Unit](ns)(n => if (n.equals(r)) Left(()) else Right(()))
         result.isLeft is true
       }
     }
