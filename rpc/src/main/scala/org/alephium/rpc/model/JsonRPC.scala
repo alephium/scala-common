@@ -64,19 +64,14 @@ object JsonRPC extends StrictLogging {
   }
 
   case class Request(method: String, params: Option[Json], id: Long) extends WithId {
-    def paramsAs[A: Decoder]: Either[Response, A] = params match {
-      case None =>
-        logger.debug(s"Unable to decode JsonRPC request parameters. (params is null)")
-        Left(Response.failed(this, Error.InvalidParams))
-      case Some(json) =>
-        json.as[A] match {
-          case Right(a) => Right(a)
-          case Left(decodingFailure) =>
-            logger.debug(
-              s"Unable to decode JsonRPC request parameters. ($method@$id: $decodingFailure)")
-            Left(Response.failed(this, Error.InvalidParams))
-        }
-    }
+    def paramsAs[A: Decoder]: Either[Response, A] =
+      params.getOrElse(JsonObject.empty.asJson).as[A] match {
+        case Right(a) => Right(a)
+        case Left(decodingFailure) =>
+          logger.debug(
+            s"Unable to decode JsonRPC request parameters. ($method@$id: $decodingFailure)")
+          Left(Response.failed(this, Error.InvalidParams))
+      }
   }
   object Request {
     implicit val encoder: Encoder[Request] =
