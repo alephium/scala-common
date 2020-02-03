@@ -12,7 +12,7 @@ class AlephiumMake(object):
 
    build     Build the project
    test      Run the test suite
-   package   Produce the project deliverable
+   publish   Publish locally the project deliverable
 ''')
         parser.add_argument('command', help='Subcommand to run')
         args = parser.parse_args(sys.argv[1:2])
@@ -28,7 +28,7 @@ class AlephiumMake(object):
     def test(self):
         run('sbt scalafmtSbt scalafmt test:scalafmt scalastyle test:scalastyle coverage test coverageReport doc')
         
-    def package(self):
+    def publish(self):
         run('sbt publishLocal')
 
 
