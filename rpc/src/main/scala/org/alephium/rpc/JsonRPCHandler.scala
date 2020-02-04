@@ -7,7 +7,6 @@ import akka.http.scaladsl.server.Route
 import com.typesafe.scalalogging.StrictLogging
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.Json
-import io.circe.syntax._
 import model.JsonRPC._
 
 object JsonRPCHandler extends StrictLogging {
@@ -25,7 +24,7 @@ object JsonRPCHandler extends StrictLogging {
     post {
       entity(as[Json]) { json =>
         onSuccess(handleRequest(handler, json)) { response =>
-          complete(response.asJson.noSpaces)
+          complete(response)
         }
       }
     }
