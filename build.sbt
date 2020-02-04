@@ -46,7 +46,9 @@ lazy val rpc = subProject("rpc")
       `akka-stream`,
       `circe-parser`,
       `circe-generic`,
-      `scala-logging`
+      `scala-logging`,
+      akkatest,
+      akkahttptest
     )
   )
   .dependsOn(util % "test->test;compile->compile")
