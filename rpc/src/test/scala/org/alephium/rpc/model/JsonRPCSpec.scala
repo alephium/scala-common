@@ -3,14 +3,19 @@ package org.alephium.rpc.model
 import scala.concurrent.Future
 import scala.util.Success
 
-import io.circe.Json
+import io.circe.{Encoder, Json}
 import io.circe.parser._
 import io.circe.syntax._
 import org.scalatest.{EitherValues, Inside}
 
+import org.alephium.rpc.JsonRPCHandler
 import org.alephium.util.AlephiumSpec
 
 class JsonRPCSpec extends AlephiumSpec with EitherValues with Inside {
+  val printer = JsonRPCHandler.printer
+  def show[T](data: T)(implicit encoder: Encoder[T]): String = {
+    printer.print(data.asJson)
+  }
 
   val dummy = Future.successful(JsonRPC.Response.Success(Json.Null, 0))
 
@@ -23,42 +28,42 @@ class JsonRPCSpec extends AlephiumSpec with EitherValues with Inside {
 
   it should "encode request" in {
     val request = JsonRPC.Request("foobar", Some(Json.fromInt(42)), 1)
-    request.asJson.noSpaces is """{"jsonrpc":"2.0","method":"foobar","params":42,"id":1}"""
+    show(request) is """{"jsonrpc":"2.0","method":"foobar","params":42,"id":1}"""
   }
 
   it should "encode request - drop nulls " in {
     val request = JsonRPC.Request("foobar", Some(Json.Null), 1)
-    request.asJson.noSpaces is """{"jsonrpc":"2.0","method":"foobar","id":1}"""
+    show(request) is """{"jsonrpc":"2.0","method":"foobar","id":1}"""
   }
 
   it should "encode notification" in {
     val notification = JsonRPC.Notification("foobar", Some(Json.fromInt(42)))
-    notification.asJson.noSpaces is """{"jsonrpc":"2.0","method":"foobar","params":42}"""
+    show(notification) is """{"jsonrpc":"2.0","method":"foobar","params":42}"""
   }
 
   it should "encode notification - drop nulls" in {
     val notification = JsonRPC.Notification("foobar", Some(Json.Null))
-    notification.asJson.noSpaces is """{"jsonrpc":"2.0","method":"foobar"}"""
+    show(notification) is """{"jsonrpc":"2.0","method":"foobar"}"""
   }
 
   it should "encode response - success" in {
     val success: JsonRPC.Response = JsonRPC.Response.Success(Json.fromInt(42), 1)
-    success.asJson.noSpaces is """{"jsonrpc":"2.0","result":42,"id":1}"""
+    show(success) is """{"jsonrpc":"2.0","result":42,"id":1}"""
   }
 
   it should "encode response - success - drop nulls" in {
     val success: JsonRPC.Response = JsonRPC.Response.Success(Json.Null, 1)
-    success.asJson.noSpaces is """{"jsonrpc":"2.0","id":1}"""
+    show(success) is """{"jsonrpc":"2.0","id":1}"""
   }
 
   it should "encode response - failure" in {
     val failure: JsonRPC.Response = JsonRPC.Response.Failure(JsonRPC.Error.InvalidRequest, Some(1))
-    failure.asJson.noSpaces is """{"jsonrpc":"2.0","error":{"code":-32600,"message":"The request is invalid."},"id":1}"""
+    show(failure) is """{"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":1}"""
   }
 
   it should "encode response - failure - no id" in {
     val failure: JsonRPC.Response = JsonRPC.Response.Failure(JsonRPC.Error.InvalidRequest, None)
-    failure.asJson.noSpaces is """{"jsonrpc":"2.0","error":{"code":-32600,"message":"The request is invalid."}}"""
+    show(failure) is """{"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"}}"""
   }
 
   it should "parse notification" in {
@@ -138,7 +143,7 @@ class JsonRPCSpec extends AlephiumSpec with EitherValues with Inside {
 
   it should "parse success - fail on wrong rpc version" in {
     val jsonRaw = """{"jsonrpc": "1.0", "result": 42, "id": 1}"""
-    val error   = parse(jsonRaw).right.value.as[JsonRPC.Response.Success].left.value
-    error.message is "Invalid JSONRPC version '1.0'."
+    val error   = parse(jsonRaw).right.value.as[JsonRPC.Response].left.value
+    error.message is "Invalid JSON-RPC version '1.0'"
   }
 }
