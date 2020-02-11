@@ -6,7 +6,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.typesafe.scalalogging.StrictLogging
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
-import io.circe.{Json, Printer}
+import io.circe.Json
 import model.JsonRPC._
 
 object JsonRPCHandler extends StrictLogging {
@@ -19,8 +19,6 @@ object JsonRPCHandler extends StrictLogging {
         val response = Response.failed(Error.InvalidRequest)
         Future.successful(response)
     }
-
-  implicit val printer: Printer = Printer.noSpaces.copy(dropNullValues = true)
 
   def routeHttp(handler: Handler): Route =
     post {

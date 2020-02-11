@@ -21,7 +21,7 @@ object JsonRPC extends StrictLogging {
   private def versionSet(json: Json): Json =
     json.mapObject(_.+:(versionKey -> Json.fromString(version)))
 
-  case class Error(code: Int, message: String)
+  case class Error(code: Int, message: String, data: Option[String] = None)
   object Error {
     // scalastyle:off magic.number
     val ParseError     = Error(-32700, "Parse error")
@@ -29,6 +29,8 @@ object JsonRPC extends StrictLogging {
     val MethodNotFound = Error(-32601, "Method not found")
     val InvalidParams  = Error(-32602, "Invalid params")
     val InternalError  = Error(-32603, "Internal error")
+
+    def server(error: String): Error = Error(-32000, "Server error", Some(error))
     // scalastyle:on
   }
 
@@ -56,7 +58,7 @@ object JsonRPC extends StrictLogging {
   }
 
   case class Request(method: String, params: Option[Json], id: Long) extends WithId {
-    def paramsAs[A: Decoder]: Either[Response, A] =
+    def paramsAs[A: Decoder]: Either[Response.Failure, A] =
       params.getOrElse(JsonObject.empty.asJson).as[A] match {
         case Right(a) => Right(a)
         case Left(decodingFailure) =>
@@ -86,10 +88,12 @@ object JsonRPC extends StrictLogging {
 
   sealed trait Response
   object Response {
-    def successful[T <: WithId](request: T): Response               = Success(Json.True, request.id)
-    def successful[T <: WithId](request: T, result: Json): Response = Success(result, request.id)
-    def failed[T <: WithId](request: T, error: Error): Response     = Failure(error, Some(request.id))
-    def failed(error: Error): Response                              = Failure(error, None)
+    def failed[T <: WithId](request: T, error: Error): Failure = Failure(error, Some(request.id))
+    def failed(error: Error): Failure                          = Failure(error, None)
+    def failed(error: String): Failure                         = failed(Error.server(error))
+    def successful[T <: WithId](request: T): Success           = Success(Json.True, request.id)
+    def successful[T <: WithId, R](request: T, result: R)(implicit encoder: Encoder[R]): Success =
+      Success(result.asJson, request.id)
 
     case class Success(result: Json, id: Long) extends Response
     object Success {
