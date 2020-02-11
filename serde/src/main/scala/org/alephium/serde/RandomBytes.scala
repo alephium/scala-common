@@ -41,7 +41,9 @@ trait RandomBytes {
     s"""$name(hex"$hex")"""
   }
 
-  def shortHex: String = Hex.toHexString(bytes).takeRight(8)
+  def toHexString: String = Hex.toHexString(bytes)
+
+  def shortHex: String = toHexString.takeRight(8)
 }
 
 object RandomBytes {
@@ -53,9 +55,12 @@ object RandomBytes {
 
     def length: Int
 
-    def from(bytes: ByteString): T = {
-      require(bytes.length == length)
-      unsafeFrom(bytes)
+    def from(bytes: ByteString): Option[T] = {
+      if (bytes.length == length) {
+        Some(unsafeFrom(bytes))
+      } else {
+        None
+      }
     }
 
     def generate: T = {

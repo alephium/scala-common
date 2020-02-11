@@ -8,11 +8,11 @@ import io.circe.parser._
 import io.circe.syntax._
 import org.scalatest.{EitherValues, Inside}
 
-import org.alephium.rpc.JsonRPCHandler
+import org.alephium.rpc.CirceUtils
 import org.alephium.util.AlephiumSpec
 
 class JsonRPCSpec extends AlephiumSpec with EitherValues with Inside {
-  val printer = JsonRPCHandler.printer
+  val printer = CirceUtils.printer
   def show[T](data: T)(implicit encoder: Encoder[T]): String = {
     printer.print(data.asJson)
   }

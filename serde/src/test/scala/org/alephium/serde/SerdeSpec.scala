@@ -1,5 +1,7 @@
 package org.alephium.serde
 
+import java.net.InetSocketAddress
+
 import akka.util.ByteString
 import org.scalacheck.Gen
 import org.scalatest.EitherValues._
@@ -176,5 +178,20 @@ class SerdeSpec extends AlephiumSpec {
       val output = deserialize[Test3](serialize(input))
       output.right.value is input
     }
+  }
+
+  "Serde for address" should "serde correctly" in {
+    val address0 = new InetSocketAddress("127.0.0.1", 9000)
+    val output0  = deserialize[InetSocketAddress](serialize(address0))
+    output0.right.value is address0
+
+    val address1 = new InetSocketAddress("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 9000)
+    val output1  = deserialize[InetSocketAddress](serialize(address1))
+    output1.right.value is address1
+  }
+
+  it should "fail for address based on host name" in {
+    val address = serialize("localhost") ++ serialize("9000")
+    deserialize[InetSocketAddress](address).left.value is a[SerdeError.WrongFormat]
   }
 }
