@@ -4,7 +4,7 @@ import scala.concurrent.Future
 
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import io.circe.Json
+import io.circe.{Json, JsonObject}
 import io.circe.parser._
 import io.circe.syntax._
 import org.scalatest.EitherValues
@@ -22,7 +22,7 @@ class JsonRPCHandlerSpec extends AlephiumSpec with ScalatestRouteTest with Eithe
 
     val route = JsonRPCHandler.routeHttp(handler)
 
-    val jsonRequest = JsonRPC.Request("foo", None, 1).asJson.noSpaces
+    val jsonRequest = JsonRPC.Request("foo", JsonObject.empty.asJson, 1).asJson.noSpaces
     val httpRequest = HttpRequest(HttpMethods.POST,
                                   "/",
                                   entity = HttpEntity(MediaTypes.`application/json`, jsonRequest))
