@@ -6,7 +6,7 @@ import scala.reflect.ClassTag
 
 import akka.util.ByteString
 
-import org.alephium.util.AVector
+import org.alephium.util.{AVector, TimeStamp}
 
 package object serde {
   import Serde._
@@ -76,4 +76,6 @@ package object serde {
     try Right(new InetSocketAddress(inetAddress, port))
     catch { case e: IllegalArgumentException => Left(SerdeError.wrongFormat(e.getMessage)) }
   }
+
+  implicit val serdeTS: Serde[TimeStamp] = longSerde.xomap(TimeStamp.from, _.millis)
 }
