@@ -43,6 +43,12 @@ trait Serde[T] extends Serializer[T] with Deserializer[T] { self =>
     }
   }
 
+  def xomap[S](to: T => Option[S], from: S => T): Serde[S] =
+    xfmap(to(_) match {
+      case Some(s) => Right(s)
+      case None    => Left(SerdeError.validation("validation error"))
+    }, from)
+
   def validate(predicate: T => Boolean, error: T => String): Serde[T] = new Serde[T] {
     override def serialize(input: T): ByteString = self.serialize(input)
 
