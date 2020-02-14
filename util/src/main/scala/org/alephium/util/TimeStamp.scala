@@ -1,23 +1,23 @@
 package org.alephium.util
 
 class TimeStamp(val millis: Long) extends AnyVal with Ordered[TimeStamp] {
-  def plusMillis(millisToAdd: Long): TimeStamp =
-    TimeStamp.fromMillis(millis + millisToAdd)
+  def plusMillis(millisToAdd: Long): Option[TimeStamp] =
+    TimeStamp.from(millis + millisToAdd)
 
-  def plusSeconds(secondsToAdd: Long): TimeStamp =
-    TimeStamp.fromMillis(millis + secondsToAdd * 1000)
+  def plusSeconds(secondsToAdd: Long): Option[TimeStamp] =
+    TimeStamp.from(millis + secondsToAdd * 1000)
 
-  def plusMinutes(minutesToAdd: Long): TimeStamp =
-    TimeStamp.fromMillis(millis + minutesToAdd * 60 * 1000)
+  def plusMinutes(minutesToAdd: Long): Option[TimeStamp] =
+    TimeStamp.from(millis + minutesToAdd * 60 * 1000)
 
-  def plusHours(hoursToAdd: Long): TimeStamp =
-    TimeStamp.fromMillis(millis + hoursToAdd * 60 * 60 * 1000)
+  def plusHours(hoursToAdd: Long): Option[TimeStamp] =
+    TimeStamp.from(millis + hoursToAdd * 60 * 60 * 1000)
 
-  def +(duration: Duration): TimeStamp =
-    TimeStamp.fromMillis(millis + duration.millis)
+  def +(duration: Duration): Option[TimeStamp] =
+    TimeStamp.from(millis + duration.millis)
 
-  def -(duration: Duration): TimeStamp =
-    TimeStamp.fromMillis(millis - duration.millis)
+  def -(duration: Duration): Option[TimeStamp] =
+    TimeStamp.from(millis - duration.millis)
 
   def diff(another: TimeStamp): Duration =
     Duration.ofMillis(millis - another.millis)
@@ -29,12 +29,16 @@ class TimeStamp(val millis: Long) extends AnyVal with Ordered[TimeStamp] {
 }
 
 object TimeStamp {
-  val zero: TimeStamp = fromMillis(0)
+  val zero: TimeStamp = unsafeFrom(0)
 
-  def now(): TimeStamp = fromMillis(System.currentTimeMillis())
+  def now(): TimeStamp = unsafeFrom(System.currentTimeMillis())
 
-  def fromMillis(millis: Long): TimeStamp = {
-    require(millis >= 0, "timestamp should be positive")
+  def unsafeFrom(millis: Long): TimeStamp = {
+    assume(millis >= 0, "timestamp should be non-negative")
     new TimeStamp(millis)
+  }
+
+  def from(millis: Long): Option[TimeStamp] = {
+    if (millis < 0) None else Some(new TimeStamp(millis))
   }
 }

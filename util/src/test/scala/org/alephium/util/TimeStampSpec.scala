@@ -7,13 +7,11 @@ import org.scalacheck.Gen
 import org.scalatest.Assertion
 
 class TimeStampSpec extends AlephiumSpec {
-  def invalid(ts: => TimeStamp): Assertion = assertThrows[IllegalArgumentException](ts)
-
   it should "initialize correctly" in {
-    TimeStamp.fromMillis(1).millis is 1
+    TimeStamp.from(1).get.millis is 1
     (TimeStamp.now().millis > 0) is true
 
-    invalid(TimeStamp.fromMillis(-1))
+    TimeStamp.from(-1).isEmpty is true
   }
 
   it should "get current millisecond" in {
@@ -28,25 +26,25 @@ class TimeStampSpec extends AlephiumSpec {
     }
 
     val instant = Instant.now()
-    val ts      = TimeStamp.fromMillis(instant.toEpochMilli)
+    val ts      = TimeStamp.unsafeFrom(instant.toEpochMilli)
 
-    check(ts.plusMillis(100), instant.plusMillis(100))
-    check(ts.plusSeconds(100), instant.plusSeconds(100))
-    check(ts.plusMinutes(100), instant.plus(100, ChronoUnit.MINUTES))
-    check(ts.plusHours(100), instant.plus(100, ChronoUnit.HOURS))
-    invalid(ts.plusMillis(-2 * ts.millis))
+    check(ts.plusMillis(100).get, instant.plusMillis(100))
+    check(ts.plusSeconds(100).get, instant.plusSeconds(100))
+    check(ts.plusMinutes(100).get, instant.plus(100, ChronoUnit.MINUTES))
+    check(ts.plusHours(100).get, instant.plus(100, ChronoUnit.HOURS))
+    ts.plusMillis(-2 * ts.millis).isEmpty is true
   }
 
   it should "operate correctly" in {
     forAll(Gen.chooseNum(0, Long.MaxValue)) { l0 =>
       forAll(Gen.chooseNum(0, l0)) { l1 =>
-        val ts = TimeStamp.fromMillis(l0 / 2)
+        val ts = TimeStamp.unsafeFrom(l0 / 2)
         val dt = Duration.ofMillis(l1 / 2)
-        (ts + dt).millis is ts.millis + dt.millis
-        (ts - dt).millis is ts.millis - dt.millis
+        (ts + dt).get.millis is ts.millis + dt.millis
+        (ts - dt).get.millis is ts.millis - dt.millis
 
-        val ts0 = TimeStamp.fromMillis(l0)
-        val ts1 = TimeStamp.fromMillis(l1)
+        val ts0 = TimeStamp.unsafeFrom(l0)
+        val ts1 = TimeStamp.unsafeFrom(l1)
         (ts0 diff ts1).millis is l0 - l1
         if (l0 != l1) {
           ts0 isBefore ts1 is false

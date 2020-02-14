@@ -8,7 +8,6 @@ class CirceUtilsSpec extends AlephiumSpec {
   import CirceUtils._
 
   "AVectorJson" should "encode and decode" in {
-    implicit val codec = avectorCodec[Int]
     forAll { ys: List[Int] =>
       val xs = AVector.from(ys)
       printer.print(xs.asJson) is xs.mkString("[", ",", "]")

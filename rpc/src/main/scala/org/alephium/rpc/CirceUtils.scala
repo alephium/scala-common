@@ -24,25 +24,25 @@ object CirceUtils {
     Codec.from(decoder, encoder)
   }
 
-  def arrayEncoder[A: ClassTag](implicit encoder: Encoder[A]): Encoder[Array[A]] =
+  implicit def arrayEncoder[A: ClassTag](implicit encoder: Encoder[A]): Encoder[Array[A]] =
     (as: Array[A]) => Json.fromValues(as.map(encoder.apply))
 
-  def arrayDecoder[A: ClassTag](implicit decoder: Decoder[A]): Decoder[Array[A]] =
+  implicit def arrayDecoder[A: ClassTag](implicit decoder: Decoder[A]): Decoder[Array[A]] =
     Decoder.decodeArray[A]
 
-  def arrayCodec[A: ClassTag](implicit encoder: Encoder[A],
-                              decoder: Decoder[A]): Codec[Array[A]] = {
+  implicit def arrayCodec[A: ClassTag](implicit encoder: Encoder[A],
+                                       decoder: Decoder[A]): Codec[Array[A]] = {
     Codec.from(arrayDecoder[A], arrayEncoder[A])
   }
 
-  def avectorEncoder[A: ClassTag](implicit encoder: Encoder[A]): Encoder[AVector[A]] =
+  implicit def avectorEncoder[A: ClassTag](implicit encoder: Encoder[A]): Encoder[AVector[A]] =
     (as: AVector[A]) => Json.fromValues(as.toIterable.map(encoder.apply))
 
-  def avectorDecoder[A: ClassTag](implicit decoder: Decoder[A]): Decoder[AVector[A]] =
+  implicit def avectorDecoder[A: ClassTag](implicit decoder: Decoder[A]): Decoder[AVector[A]] =
     Decoder.decodeArray[A].map(AVector.unsafe)
 
-  def avectorCodec[A: ClassTag](implicit encoder: Encoder[A],
-                                decoder: Decoder[A]): Codec[AVector[A]] = {
+  implicit def avectorCodec[A: ClassTag](implicit encoder: Encoder[A],
+                                         decoder: Decoder[A]): Codec[AVector[A]] = {
     Codec.from(avectorDecoder[A], avectorEncoder[A])
   }
 
