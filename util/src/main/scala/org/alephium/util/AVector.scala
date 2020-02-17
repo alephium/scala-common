@@ -238,6 +238,32 @@ abstract class AVector[@sp A](implicit val ct: ClassTag[A]) extends Serializable
     filterImpl(p, false)
   }
 
+  def filterE[L](p: A => Either[L, Boolean]): Either[L, AVector[A]] = {
+    filterEImpl(p, true)
+  }
+
+  def filterNotE[L](p: A => Either[L, Boolean]): Either[L, AVector[A]] = {
+    filterEImpl(p, false)
+  }
+
+  @inline
+  private def filterImpl(p: A => Boolean, target: Boolean): AVector[A] = {
+    fold(AVector.empty[A]) { (acc, elem) =>
+      if (p(elem) == target) acc :+ elem else acc
+    }
+  }
+
+  @inline
+  private def filterEImpl[L](p: A => Either[L, Boolean], target: Boolean): Either[L, AVector[A]] = {
+    Right(fold(AVector.empty[A]) { (acc, elem) =>
+      p(elem) match {
+        case Left(l)                 => return Left(l)
+        case Right(t) if t == target => acc :+ elem
+        case Right(_)                => acc
+      }
+    })
+  }
+
   def foreachE[L](f: A => Either[L, Unit]): Either[L, Unit] = {
     foreach { elem =>
       f(elem) match {
@@ -256,12 +282,6 @@ abstract class AVector[@sp A](implicit val ct: ClassTag[A]) extends Serializable
       }
     }
     Right(())
-  }
-
-  @inline private def filterImpl(p: A => Boolean, target: Boolean): AVector[A] = {
-    fold(AVector.empty[A]) { (acc, elem) =>
-      if (p(elem) == target) acc :+ elem else acc
-    }
   }
 
   def withFilter(p: A => Boolean): WithFilter = new WithFilter(p)
