@@ -77,5 +77,5 @@ package object serde {
     catch { case e: IllegalArgumentException => Left(SerdeError.wrongFormat(e.getMessage)) }
   }
 
-  implicit val serdeTS: Serde[TimeStamp] = longSerde.xomap(TimeStamp.ofMillis, _.millis)
+  implicit val serdeTS: Serde[TimeStamp] = longSerde.xomap(TimeStamp.from, _.millis)
 }
