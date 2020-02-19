@@ -17,10 +17,10 @@ object CirceUtils {
     Codec.from(decoder, encoder)
   }
 
-  def codecXemap[T, U](to: T => Either[String, U], from: U => T)(
-      implicit codec: Codec[T]): Codec[U] = {
-    val encoder = codec.contramap(from)
-    val decoder = codec.emap(to)
+  def codecXemap[T, U](to: T => Either[String, U], from: U => T)(implicit _encoder: Encoder[T],
+                                                                 _decoder: Decoder[T]): Codec[U] = {
+    val encoder = _encoder.contramap(from)
+    val decoder = _decoder.emap(to)
     Codec.from(decoder, encoder)
   }
 
@@ -47,11 +47,11 @@ object CirceUtils {
   }
 
   implicit val inetAddressCodec: Codec[InetAddress] = {
-    codecXemap[Array[Byte], InetAddress](createInetAddress, _.getAddress)(arrayCodec[Byte])
+    codecXemap[String, InetAddress](createInetAddress, _.getHostAddress)
   }
 
-  private def createInetAddress(bs: Array[Byte]): Either[String, InetAddress] = {
-    try Right(InetAddress.getByAddress(bs))
+  private def createInetAddress(s: String): Either[String, InetAddress] = {
+    try Right(InetAddress.getByName(s))
     catch { case e: Throwable => Left(e.getMessage) }
   }
 
