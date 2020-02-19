@@ -20,16 +20,16 @@ class Duration(val millis: Long) extends AnyVal with Ordered[Duration] {
   // Scala Duration is limited to +-(2^63-1)ns (ca. 292 years)
   def asScala: SDuration = SDuration.apply(millis, MILLISECONDS)
 
-  def +(another: Duration): Duration = Duration.unsafeFrom(millis + another.millis)
+  def +(another: Duration): Duration = Duration.unsafe(millis + another.millis)
 
   def -(another: Duration): Option[Duration] = Duration.from(millis - another.millis)
 
   def times(scale: Long): Option[Duration] = Duration.from(millis * scale)
-  def timesUnsafe(scale: Long): Duration   = Duration.unsafeFrom(millis * scale)
+  def timesUnsafe(scale: Long): Duration   = Duration.unsafe(millis * scale)
   def *(scale: Long): Option[Duration]     = times(scale)
 
   def div(scale: Long): Option[Duration] = Duration.from(millis / scale)
-  def divUnsafe(scale: Long): Duration   = Duration.unsafeFrom(millis / scale)
+  def divUnsafe(scale: Long): Duration   = Duration.unsafe(millis / scale)
   def /(scale: Long): Option[Duration]   = Duration.from(millis / scale)
 
   def compare(that: Duration): Int = millis compare that.millis
@@ -38,7 +38,7 @@ class Duration(val millis: Long) extends AnyVal with Ordered[Duration] {
 }
 
 object Duration {
-  def unsafeFrom(millis: Long): Duration = {
+  def unsafe(millis: Long): Duration = {
     assume(millis >= 0, "duration should be positive")
     new Duration(millis)
   }
@@ -47,19 +47,19 @@ object Duration {
     if (millis >= 0) Some(new Duration(millis)) else None
   }
 
-  val zero: Duration = unsafeFrom(0)
+  val zero: Duration = unsafe(0)
 
   def ofMillis(millis: Long): Option[Duration] = from(millis)
-  def ofMillisUnsafe(millis: Long): Duration   = unsafeFrom(millis)
+  def ofMillisUnsafe(millis: Long): Duration   = unsafe(millis)
 
   def ofSeconds(seconds: Long): Option[Duration] = from(seconds * 1000)
-  def ofSecondsUnsafe(seconds: Long): Duration   = unsafeFrom(seconds * 1000)
+  def ofSecondsUnsafe(seconds: Long): Duration   = unsafe(seconds * 1000)
 
   def ofMinutes(minutes: Long): Option[Duration] = from(minutes * 60 * 1000)
-  def ofMinutesUnsafe(minutes: Long): Duration   = unsafeFrom(minutes * 60 * 1000)
+  def ofMinutesUnsafe(minutes: Long): Duration   = unsafe(minutes * 60 * 1000)
 
   def ofHours(hours: Long): Option[Duration] = from(hours * 60 * 60 * 1000)
-  def ofHoursUnsafe(hours: Long): Duration   = unsafeFrom(hours * 60 * 60 * 1000)
+  def ofHoursUnsafe(hours: Long): Duration   = unsafe(hours * 60 * 60 * 1000)
 
   def from(dt: JDuration): Option[Duration] = ofMillis(dt.toMillis)
 }

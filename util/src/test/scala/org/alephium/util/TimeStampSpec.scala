@@ -8,10 +8,10 @@ import org.scalatest.Assertion
 
 class TimeStampSpec extends AlephiumSpec {
   it should "initialize correctly" in {
-    TimeStamp.ofMillis(1).get.millis is 1
+    TimeStamp.from(1).get.millis is 1
     (TimeStamp.now().millis > 0) is true
 
-    TimeStamp.ofMillis(-1).isEmpty is true
+    TimeStamp.from(-1).isEmpty is true
   }
 
   it should "get current millisecond" in {
@@ -26,7 +26,7 @@ class TimeStampSpec extends AlephiumSpec {
     }
 
     val instant = Instant.now()
-    val ts      = TimeStamp.ofMillisUnsafe(instant.toEpochMilli)
+    val ts      = TimeStamp.unsafe(instant.toEpochMilli)
 
     check(ts.plusMillis(100).get, instant.plusMillis(100))
     check(ts.plusMillisUnsafe(100), instant.plusMillis(100))
@@ -43,13 +43,13 @@ class TimeStampSpec extends AlephiumSpec {
   it should "operate correctly" in {
     forAll(Gen.chooseNum(0, Long.MaxValue)) { l0 =>
       forAll(Gen.chooseNum(0, l0)) { l1 =>
-        val ts = TimeStamp.ofMillisUnsafe(l0 / 2)
-        val dt = Duration.unsafeFrom(l1 / 2)
+        val ts = TimeStamp.unsafe(l0 / 2)
+        val dt = Duration.unsafe(l1 / 2)
         (ts + dt).millis is ts.millis + dt.millis
         (ts - dt).get.millis is ts.millis - dt.millis
 
-        val ts0 = TimeStamp.ofMillisUnsafe(l0)
-        val ts1 = TimeStamp.ofMillisUnsafe(l1)
+        val ts0 = TimeStamp.unsafe(l0)
+        val ts1 = TimeStamp.unsafe(l1)
         if (ts0 >= ts1) {
           (ts0 -- ts1).get.millis is l0 - l1
         } else {
