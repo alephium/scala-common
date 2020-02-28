@@ -11,6 +11,13 @@ object Hex {
     ByteString.fromArrayUnsafe(BHex.decode(s))
   }
 
+  def from(s: String): Option[ByteString] =
+    try {
+      Some(unsafeFrom(s))
+    } catch {
+      case _: Throwable => None
+    }
+
   def toHexString(input: IndexedSeq[Byte]): String = {
     BHex.toHexString(input.toArray)
   }

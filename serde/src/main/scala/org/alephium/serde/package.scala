@@ -1,12 +1,12 @@
 package org.alephium
 
-import java.net.{InetAddress, InetSocketAddress}
+import java.net.{InetAddress, InetSocketAddress, UnknownHostException}
 
 import scala.reflect.ClassTag
 
 import akka.util.ByteString
 
-import org.alephium.util.AVector
+import org.alephium.util.{AVector, TimeStamp}
 
 package object serde {
   import Serde._
@@ -55,15 +55,27 @@ package object serde {
   implicit val bigIntSerde: Serde[BigInt] =
     avectorSerde[Byte].xmap(vc => BigInt(vc.toArray), bi => AVector.unsafe(bi.toByteArray))
 
-  implicit val inetAddressSerde: Serde[InetAddress] =
-    bytesSerde(4).xmap(bs => InetAddress.getByAddress(bs.toArray),
-                       ia => ByteString.fromArrayUnsafe(ia.getAddress))
+  /*
+   * Note: only ipv4 and ipv6 addresses are suppported in the following serdes
+   * addresses based on hostnames are not supported
+   */
+
+  implicit val inetAddressSerde: Serde[InetAddress] = bytestringSerde
+    .xfmap(bs => createInetAddress(bs), ia => ByteString.fromArrayUnsafe(ia.getAddress))
+
+  def createInetAddress(bs: ByteString): SerdeResult[InetAddress] = {
+    try Right(InetAddress.getByAddress(bs.toArray))
+    catch { case e: UnknownHostException => Left(SerdeError.wrongFormat(e.getMessage)) }
+  }
 
   implicit val inetSocketAddressSerde: Serde[InetSocketAddress] =
-    forProduct2[InetAddress, Int, InetSocketAddress](
-      { (hostname, port) =>
-        new InetSocketAddress(hostname, port)
-      },
-      isa => (isa.getAddress, isa.getPort)
-    )
+    tuple2[InetAddress, Int].xfmap({ case (address, port) => createSocketAddress(address, port) },
+                                   sAddress => (sAddress.getAddress, sAddress.getPort))
+
+  def createSocketAddress(inetAddress: InetAddress, port: Int): SerdeResult[InetSocketAddress] = {
+    try Right(new InetSocketAddress(inetAddress, port))
+    catch { case e: IllegalArgumentException => Left(SerdeError.wrongFormat(e.getMessage)) }
+  }
+
+  implicit val serdeTS: Serde[TimeStamp] = longSerde.xomap(TimeStamp.from, _.millis)
 }

@@ -254,6 +254,21 @@ abstract class AVectorSpec[@sp A: ClassTag](implicit ab: Arbitrary[A], cmp: Orde
     }
   }
 
+  it should "filterE" in new Fixture {
+    forAll(vectorGen, ab.arbitrary) { (vc, a) =>
+      val arr  = vc.toArray
+      val p    = cmp.lt(_: A, a)
+      val vc0  = vc.filterE[Unit](e => Right(p(e)))
+      val arr0 = arr.filter(p)
+      checkEq(vc0.right.value, arr0)
+      val vc1  = vc.filterNotE[Unit](e => Right(p(e)))
+      val arr1 = arr.filterNot(p)
+      checkEq(vc1.right.value, arr1)
+      vc.filterE[Unit](_    => Left(())).isLeft is true
+      vc.filterNotE[Unit](_ => Left(())).isLeft is true
+    }
+  }
+
   trait FixtureF extends Fixture {
     def alwaysRight: A => Either[Unit, A] = Right.apply
     def alwaysLeft: A  => Either[Unit, A] = _ => Left(())
