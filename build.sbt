@@ -80,7 +80,7 @@ val commonSettings = Seq(
   version := "0.3.0-SNAPSHOT",
   scalaVersion := "2.12.9",
   parallelExecution in Test := false,
-  scalacOptions := Seq(
+  scalacOptions ++= Seq(
 //    "-Xdisable-assertions", // TODO: use this properly
     "-deprecation",
     "-encoding",
@@ -123,8 +123,8 @@ val commonSettings = Seq(
     "-Ywarn-unused:privates",
     "-Ywarn-value-discard"
   ),
-  wartremoverErrors ++= Warts.all,
-  wartremoverWarnings ++= Warts.all,
+  wartremoverErrors in (Compile, compile) := Warts.allBut(wartsCompileExcludes: _*),
+  wartremoverErrors in (Test, test) := Warts.allBut(wartsTestExcludes: _*),
   fork := true,
   Test / scalacOptions += "-Xcheckinit",
   Test / javaOptions += "-Xss2m",
@@ -135,4 +135,20 @@ val commonSettings = Seq(
     scalacheck,
     scalatest,
   )
+)
+
+val wartsCompileExcludes = Seq(
+  Wart.MutableDataStructures,
+  Wart.Var,
+  Wart.Overloading,
+  Wart.NonUnitStatements,
+  Wart.Nothing,
+  Wart.Return, // Covered by scalastyle
+  Wart.Any,
+  Wart.Equals
+)
+
+val wartsTestExcludes = wartsCompileExcludes ++ Seq(
+  Wart.PublicInference,
+  Wart.OptionPartial
 )

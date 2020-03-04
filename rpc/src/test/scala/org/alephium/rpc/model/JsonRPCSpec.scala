@@ -128,7 +128,7 @@ class JsonRPCSpec extends AlephiumSpec with EitherValues with Inside {
 
     inside(response) {
       case JsonRPC.Response.Failure(error, id) =>
-        error is JsonRPC.Error(42, "foo")
+        error is JsonRPC.Error.apply(42, "foo")
         id is Some(1L)
     }
   }

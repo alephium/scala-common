@@ -1,7 +1,7 @@
 package org.alephium.util
 
 import akka.actor._
-import org.slf4j.LoggerFactory
+import org.slf4j.{Logger, LoggerFactory}
 
 trait BaseActor extends Actor with ActorLogging {
 
@@ -37,7 +37,7 @@ object BaseActor {
 
 final class DefaultStrategy extends SupervisorStrategyConfigurator {
 
-  val logger = LoggerFactory.getLogger(this.getClass)
+  val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   override def create(): SupervisorStrategy = {
     val env = System.getenv("ALEPHIUM_ENV")
@@ -47,13 +47,13 @@ final class DefaultStrategy extends SupervisorStrategyConfigurator {
     }
   }
 
-  val resumeStrategy = OneForOneStrategy() {
+  val resumeStrategy: OneForOneStrategy = OneForOneStrategy() {
     case e: Throwable =>
       logger.error("Unhandled throwable", e)
       SupervisorStrategy.Resume
   }
 
-  val stopStrategy = OneForOneStrategy() {
+  val stopStrategy: OneForOneStrategy = OneForOneStrategy() {
     case e: Throwable =>
       logger.error("Unhandled throwable", e)
       SupervisorStrategy.Stop

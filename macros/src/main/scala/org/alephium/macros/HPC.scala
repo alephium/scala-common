@@ -19,6 +19,7 @@ object HPC {
     val util  = SyntaxUtil[c.type](c)
     val index = util.name("index")
 
+    @SuppressWarnings(Array("org.wartremover.warts.Nothing"))
     val tree = if (util.isClean(test, next, body)) {
       q"""
       var $index = $init
@@ -27,7 +28,6 @@ object HPC {
         $index = $next($index)
       }
       """
-
     } else {
       val testName = util.name("test")
       val nextName = util.name("next")
@@ -50,12 +50,14 @@ object HPC {
 }
 
 // scalastyle:off
-case class SyntaxUtil[C <: Context with Singleton](val c: C) {
+final case class SyntaxUtil[C <: Context with Singleton](val c: C) {
 
   import c.universe._
 
+  @SuppressWarnings(Array("org.wartremover.warts.PublicInference"))
   def name(s: String) = Compat.freshTermName(c)(s + "$")
 
+  @SuppressWarnings(Array("org.wartremover.warts.PublicInference"))
   def names(bs: String*) = bs.toList.map(name)
 
   def isClean(es: c.Expr[_]*): Boolean =
@@ -71,6 +73,7 @@ case class SyntaxUtil[C <: Context with Singleton](val c: C) {
 class InlineUtil[C <: Context with Singleton](val c: C) {
   import c.universe._
 
+  @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
   def inlineAndReset[T](tree: Tree): c.Expr[T] = {
     val inlined = inlineApplyRecursive(tree)
     c.Expr[T](Compat.resetLocalAttrs(c)(inlined))
@@ -80,6 +83,7 @@ class InlineUtil[C <: Context with Singleton](val c: C) {
     val ApplyName = Compat.termName(c)("apply")
 
     class InlineSymbol(name: TermName, symbol: Symbol, value: Tree) extends Transformer {
+      @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
       override def transform(tree: Tree): Tree = tree match {
         case tree: Ident if tree.symbol == symbol =>
           if (tree.name == name) {
@@ -122,27 +126,25 @@ class InlineUtil[C <: Context with Singleton](val c: C) {
 }
 
 object Compat {
-
   type Context = scala.reflect.macros.whitebox.Context
 
-  def freshTermName[C <: Context](c: C)(s: String) =
+  def freshTermName[C <: Context](c: C)(s: String): c.universe.TermName =
     c.universe.TermName(c.freshName(s))
 
-  def termName[C <: Context](c: C)(s: String) =
+  def termName[C <: Context](c: C)(s: String): c.universe.TermName =
     c.universe.TermName(s)
 
-  def typeCheck[C <: Context](c: C)(t: c.Tree) =
+  def typeCheck[C <: Context](c: C)(t: c.Tree): c.Tree =
     c.typecheck(t)
 
-  def resetLocalAttrs[C <: Context](c: C)(t: c.Tree) =
+  def resetLocalAttrs[C <: Context](c: C)(t: c.Tree): c.Tree =
     c.untypecheck(t)
 
-  def setOrig[C <: Context](c: C)(tt: c.universe.TypeTree, t: c.Tree) =
+  def setOrig[C <: Context](c: C)(tt: c.universe.TypeTree, t: c.Tree): c.universe.TypeTree =
     c.universe.internal.setOriginal(tt, t)
 
   def predef[C <: Context](c: C): c.Tree = {
     import c.universe._
     q"scala.Predef"
   }
-
 }

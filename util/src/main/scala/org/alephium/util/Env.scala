@@ -1,13 +1,13 @@
 package org.alephium.util
 
 sealed trait Env {
-  def name: String = toString.toLowerCase
+  def name: String
 }
 
 object Env {
-  case object Prod  extends Env
-  case object Debug extends Env
-  case object Test  extends Env
+  case object Prod  extends Env { override def name: String = "prod" }
+  case object Debug extends Env { override def name: String = "debug" }
+  case object Test  extends Env { override def name: String = "test" }
 
   def resolve(): Env = {
     val env = System.getenv("ALEPHIUM_ENV")
