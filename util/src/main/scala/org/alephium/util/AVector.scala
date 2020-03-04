@@ -6,6 +6,7 @@ import scala.reflect.ClassTag
 import org.alephium.macros.HPC
 
 // scalastyle:off number.of.methods return
+@SuppressWarnings(Array("org.wartremover.warts.While"))
 abstract class AVector[@sp A](implicit val ct: ClassTag[A]) extends Serializable { self =>
   import HPC.cfor
 
@@ -300,7 +301,7 @@ abstract class AVector[@sp A](implicit val ct: ClassTag[A]) extends Serializable
     }
 
     def foreach[U](f: A => U): Unit = {
-      foreach { elem =>
+      self.foreach { elem =>
         if (p(elem)) f(elem)
       }
     }
@@ -547,6 +548,7 @@ abstract class AVector[@sp A](implicit val ct: ClassTag[A]) extends Serializable
 }
 // scalastyle:on
 
+@SuppressWarnings(Array("org.wartremover.warts.While"))
 object AVector {
   import HPC.cfor
 

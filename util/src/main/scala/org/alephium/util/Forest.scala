@@ -30,21 +30,17 @@ object Forest {
 
     val roots = mutable.ArrayBuffer.empty[Node[K, T]]
     rootParents.values.foreach(roots ++= _)
-    Some(Forest(roots))
+    Some(new Forest(roots))
   }
 
   def build[K, T](value: T, toKey: T => K): Forest[K, T] = {
     val node = Node(toKey(value), value, mutable.ArrayBuffer.empty[Node[K, T]])
-    Forest(mutable.ArrayBuffer(node))
+    new Forest(mutable.ArrayBuffer(node))
   }
 }
 
 // Note: we use ArrayBuffer instead of Set because the number of forks in blockchain is usually small
-case class Forest[K, T](roots: mutable.ArrayBuffer[Node[K, T]]) {
-  def isEmpty: Boolean = roots.isEmpty
-
-  def nonEmpty: Boolean = roots.nonEmpty
-
+final class Forest[K, T](val roots: mutable.ArrayBuffer[Node[K, T]]) {
   def contains(key: K): Boolean = {
     roots.exists(_.contains(key))
   }
@@ -83,11 +79,13 @@ case class Forest[K, T](roots: mutable.ArrayBuffer[Node[K, T]]) {
   }
 }
 
-case class Node[K, T](key: K, value: T, children: mutable.ArrayBuffer[Node[K, T]]) {
+final case class Node[K, T](key: K, value: T, children: mutable.ArrayBuffer[Node[K, T]]) {
+  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
   def contains(another: K): Boolean = {
     key == another || children.exists(_.contains(another))
   }
 
+  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
   def flatten: AVector[Node[K, T]] = {
     AVector(this) ++ children.foldLeft(AVector.empty[Node[K, T]])(_ ++ _.flatten)
   }

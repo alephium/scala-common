@@ -55,7 +55,9 @@ class ConcurrentHashMap[K, V] private (m: JCHashMap[K, V]) {
   }
 
   // throw exception if the map is empty
+  @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
   def reduceValuesBy[W](f: V => W)(op: (W, W) => W): W = {
+    assume(!m.isEmpty)
     var result: Option[W] = None
     foreachValue { v =>
       val w = f(v)
@@ -64,7 +66,6 @@ class ConcurrentHashMap[K, V] private (m: JCHashMap[K, V]) {
         case None    => result = Some(w)
       }
     }
-    assert(result.nonEmpty)
     result.get
   }
 }

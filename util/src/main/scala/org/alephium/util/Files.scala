@@ -4,8 +4,9 @@ import java.io.{InputStreamReader, PrintWriter}
 import java.nio.file.{Path, Paths}
 
 object Files {
+  @SuppressWarnings(Array("org.wartremover.warts.While"))
   def copyFromResource(resourcePath: String, filePath: Path): Unit = {
-    val in  = new InputStreamReader(getClass().getResourceAsStream(resourcePath))
+    val in  = new InputStreamReader(getClass.getResourceAsStream(resourcePath))
     val out = new PrintWriter(filePath.toFile)
 
     val bufferSize = 1024
