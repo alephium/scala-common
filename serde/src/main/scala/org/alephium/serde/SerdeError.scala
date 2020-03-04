@@ -3,10 +3,10 @@ package org.alephium.serde
 sealed abstract class SerdeError(message: String) extends Exception(message)
 
 object SerdeError {
-  class NotEnoughBytes(message: String) extends SerdeError(message)
-  class WrongFormat(message: String)    extends SerdeError(message)
-  class Validation(message: String)     extends SerdeError(message)
-  class Other(message: String)          extends SerdeError(message)
+  final class NotEnoughBytes(message: String) extends SerdeError(message)
+  final class WrongFormat(message: String)    extends SerdeError(message)
+  final class Validation(message: String)     extends SerdeError(message)
+  final class Other(message: String)          extends SerdeError(message)
 
   def notEnoughBytes(expected: Int, got: Int): NotEnoughBytes =
     new NotEnoughBytes(s"Too few bytes: expected $expected, got $got")

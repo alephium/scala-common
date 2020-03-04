@@ -2,7 +2,7 @@ package org.alephium.serde
 
 import java.security.SecureRandom
 
-import scala.reflect.runtime.universe.{typeOf, TypeTag}
+import scala.reflect.runtime.universe.TypeTag
 
 import akka.util.ByteString
 
@@ -49,14 +49,12 @@ trait RandomBytes {
 object RandomBytes {
   abstract class Companion[T: TypeTag](val unsafeFrom: ByteString => T,
                                        val toBytes: T             => ByteString) {
-    val name = typeOf[T].typeSymbol.name.toString
-
     lazy val zero: T = unsafeFrom(ByteString.fromArrayUnsafe(Array.fill[Byte](length)(0)))
 
     def length: Int
 
     def from(bytes: ByteString): Option[T] = {
-      if (bytes.length == length) {
+      if (bytes.nonEmpty && bytes.length == length) {
         Some(unsafeFrom(bytes))
       } else {
         None
