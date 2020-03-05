@@ -54,11 +54,9 @@ final case class SyntaxUtil[C <: Context with Singleton](val c: C) {
 
   import c.universe._
 
-  @SuppressWarnings(Array("org.wartremover.warts.PublicInference"))
-  def name(s: String) = Compat.freshTermName(c)(s + "$")
+  def name(s: String): TermName = Compat.freshTermName(c)(s + "$")
 
-  @SuppressWarnings(Array("org.wartremover.warts.PublicInference"))
-  def names(bs: String*) = bs.toList.map(name)
+  def names(bs: String*): List[TermName] = bs.toList.map(name)
 
   def isClean(es: c.Expr[_]*): Boolean =
     es.forall {
