@@ -21,14 +21,18 @@ object JsonRPC extends StrictLogging {
   private def versionSet(json: Json): Json =
     json.mapObject(_.+:(versionKey -> Json.fromString(version)))
 
-  case class Error(code: Int, message: String, data: Option[String] = None)
+  final case class Error(code: Int, message: String, data: Option[String])
   object Error {
+    def apply(code: Int, message: String): Error = {
+      Error(code, message, None)
+    }
+
     // scalastyle:off magic.number
-    val ParseError     = Error(-32700, "Parse error")
-    val InvalidRequest = Error(-32600, "Invalid Request")
-    val MethodNotFound = Error(-32601, "Method not found")
-    val InvalidParams  = Error(-32602, "Invalid params")
-    val InternalError  = Error(-32603, "Internal error")
+    val ParseError: Error     = Error(-32700, "Parse error")
+    val InvalidRequest: Error = Error(-32600, "Invalid Request")
+    val MethodNotFound: Error = Error(-32601, "Method not found")
+    val InvalidParams: Error  = Error(-32602, "Invalid params")
+    val InternalError: Error  = Error(-32603, "Internal error")
 
     def server(error: String): Error = Error(-32000, "Server error", Some(error))
     // scalastyle:on
@@ -36,7 +40,7 @@ object JsonRPC extends StrictLogging {
 
   trait WithId { def id: Long }
 
-  case class RequestUnsafe(
+  final case class RequestUnsafe(
       jsonrpc: String,
       method: String,
       params: Option[Json],
@@ -57,7 +61,7 @@ object JsonRPC extends StrictLogging {
     implicit val decoder: Decoder[RequestUnsafe] = deriveDecoder[RequestUnsafe]
   }
 
-  case class Request(method: String, params: Option[Json], id: Long) extends WithId {
+  final case class Request(method: String, params: Option[Json], id: Long) extends WithId {
     def paramsAs[A: Decoder]: Either[Response.Failure, A] =
       params.getOrElse(JsonObject.empty.asJson).as[A] match {
         case Right(a) => Right(a)
@@ -71,7 +75,7 @@ object JsonRPC extends StrictLogging {
     implicit val encoder: Encoder[Request] = deriveEncoder[Request].mapJson(versionSet)
   }
 
-  case class NotificationUnsafe(jsonrpc: String, method: String, params: Option[Json]) {
+  final case class NotificationUnsafe(jsonrpc: String, method: String, params: Option[Json]) {
     def asNotification: Either[Error, Notification] =
       if (jsonrpc == JsonRPC.version) { Right(Notification(method, params)) } else {
         Left(Error.InvalidRequest)
@@ -81,7 +85,7 @@ object JsonRPC extends StrictLogging {
     implicit val decoder: Decoder[NotificationUnsafe] = deriveDecoder[NotificationUnsafe]
   }
 
-  case class Notification(method: String, params: Option[Json])
+  final case class Notification(method: String, params: Option[Json])
   object Notification {
     implicit val encoder: Encoder[Notification] = deriveEncoder[Notification].mapJson(versionSet)
   }
@@ -95,11 +99,11 @@ object JsonRPC extends StrictLogging {
     def successful[T <: WithId, R](request: T, result: R)(implicit encoder: Encoder[R]): Success =
       Success(result.asJson, request.id)
 
-    case class Success(result: Json, id: Long) extends Response
+    final case class Success(result: Json, id: Long) extends Response
     object Success {
       implicit val codec: Codec[Success] = deriveCodec[Success]
     }
-    case class Failure(error: Error, id: Option[Long]) extends Response
+    final case class Failure(error: Error, id: Option[Long]) extends Response
     object Failure {
       import io.circe.generic.auto._ // Note: I hate this!
       implicit val codec: Codec[Failure] = deriveCodec[Failure]
