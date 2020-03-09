@@ -41,6 +41,10 @@ object Forest {
 
 // Note: we use ArrayBuffer instead of Set because the number of forks in blockchain is usually small
 final class Forest[K, T](val roots: mutable.ArrayBuffer[Node[K, T]]) {
+  def isEmpty: Boolean = roots.isEmpty
+
+  def nonEmpty: Boolean = roots.nonEmpty
+
   def contains(key: K): Boolean = {
     roots.exists(_.contains(key))
   }
