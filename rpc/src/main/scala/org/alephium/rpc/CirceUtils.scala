@@ -1,11 +1,9 @@
 package org.alephium.rpc
 
 import akka.util.ByteString
-import java.net.{InetAddress, InetSocketAddress}
-
-import scala.reflect.ClassTag
-
 import io.circe._
+import java.net.{InetAddress, InetSocketAddress}
+import scala.reflect.ClassTag
 
 import org.alephium.util.{AVector, Hex}
 

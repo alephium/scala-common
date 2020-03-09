@@ -34,7 +34,13 @@ class JsonRPCSpec extends AlephiumSpec with EitherValues with Inside {
   }
 
   def parseNotification(jsonRaw: String): JsonRPC.Notification =
-    parseAs[JsonRPC.NotificationUnsafe](jsonRaw).asNotification.right.value
+    parseNotificationUnsafe(jsonRaw).asNotification.right.value
+
+  def parseNotificationUnsafe(jsonRaw: String): JsonRPC.NotificationUnsafe =
+    parseAs[JsonRPC.NotificationUnsafe](jsonRaw)
+
+  def parseRequest(jsonRaw: String): JsonRPC.RequestUnsafe =
+    parseAs[JsonRPC.RequestUnsafe](jsonRaw)
 
   def requestRunFailure(request: JsonRPC.RequestUnsafe, error: JsonRPC.Error): Assertion = {
     val result = request.runWith(handler("foobar"))
@@ -103,7 +109,7 @@ class JsonRPCSpec extends AlephiumSpec with EitherValues with Inside {
 
   it should "parse notification - fail on wrong rpc version" in {
     val jsonRaw = """{"jsonrpc": "1.0", "method": "foobar", "params": {}}"""
-    val error   = parseAs[JsonRPC.NotificationUnsafe](jsonRaw).asNotification.left.value
+    val error   = parseNotificationUnsafe(jsonRaw).asNotification.left.value
     error is JsonRPC.Error.InvalidRequest
   }
 
@@ -113,8 +119,7 @@ class JsonRPCSpec extends AlephiumSpec with EitherValues with Inside {
 
   it should "parse notification - fail with null params" in {
     notificationFailure(
-      parseAs[JsonRPC.NotificationUnsafe](
-        """{"jsonrpc": "2.0", "method": "foobar", "params": null}"""),
+      parseNotificationUnsafe("""{"jsonrpc": "2.0", "method": "foobar", "params": null}"""),
       JsonRPC.Error.InvalidParams
     )
   }
@@ -150,24 +155,21 @@ class JsonRPCSpec extends AlephiumSpec with EitherValues with Inside {
 
   it should "parse request - fail on wrong rpc version" in {
     val request =
-      parseAs[JsonRPC.RequestUnsafe](
-        """{"jsonrpc": "1.0", "method": "foobar", "id": 1, "params": {"foo": 42}}""")
+      parseRequest("""{"jsonrpc": "1.0", "method": "foobar", "id": 1, "params": {"foo": 42}}""")
     request.jsonrpc is "1.0"
     requestRunFailure(request, JsonRPC.Error.InvalidRequest)
   }
 
   it should "parse request - fail with null params" in {
     requestRunFailure(
-      parseAs[JsonRPC.RequestUnsafe](
-        """{"jsonrpc": "2.0", "method": "foobar", "id": 1, "params": null}"""),
+      parseRequest("""{"jsonrpc": "2.0", "method": "foobar", "id": 1, "params": null}"""),
       JsonRPC.Error.InvalidParams
     )
   }
 
   it should "parse request - fail with params as value" in {
     requestRunFailure(
-      parseAs[JsonRPC.RequestUnsafe](
-        """{"jsonrpc": "2.0", "method": "foobar", "id": 1, "params": 42}"""),
+      parseRequest("""{"jsonrpc": "2.0", "method": "foobar", "id": 1, "params": 42}"""),
       JsonRPC.Error.InvalidParams
     )
   }
