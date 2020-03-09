@@ -1,12 +1,13 @@
 package org.alephium.rpc
 
+import akka.util.ByteString
 import java.net.{InetAddress, InetSocketAddress}
 
 import scala.reflect.ClassTag
 
 import io.circe._
 
-import org.alephium.util.AVector
+import org.alephium.util.{AVector, Hex}
 
 object CirceUtils {
   implicit val printer: Printer = Printer.noSpaces.copy(dropNullValues = true)
@@ -44,6 +45,14 @@ object CirceUtils {
   implicit def avectorCodec[A: ClassTag](implicit encoder: Encoder[A],
                                          decoder: Decoder[A]): Codec[AVector[A]] = {
     Codec.from(avectorDecoder[A], avectorEncoder[A])
+  }
+
+  implicit val byteStringEncoder: Encoder[ByteString] = new Encoder[ByteString] {
+    def apply(bs: ByteString): Json = Json.fromString(Hex.toHexString(bs.toIndexedSeq))
+  }
+
+  implicit val byteStringDecoder: Decoder[ByteString] = new Decoder[ByteString] {
+    def apply(c: HCursor): Decoder.Result[ByteString] = c.as[String].map(Hex.unsafeFrom(_))
   }
 
   implicit val inetAddressCodec: Codec[InetAddress] = {
