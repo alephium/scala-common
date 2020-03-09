@@ -2,13 +2,22 @@ package org.alephium.rpc
 
 import java.net.InetSocketAddress
 
-import io.circe.Codec
+import akka.util.ByteString
+import io.circe._
+import io.circe.generic.semiauto._
 import io.circe.parser._
 import io.circe.syntax._
 import org.scalatest.Assertion
 import org.scalatest.EitherValues._
 
 import org.alephium.util.{AlephiumSpec, AVector}
+
+case class Foo(bar: ByteString)
+object Foo {
+  import CirceUtils._
+  implicit val decoder: Decoder[Foo] = deriveDecoder[Foo]
+  implicit val encoder: Encoder[Foo] = deriveEncoder[Foo]
+}
 
 class CirceUtilsSpec extends AlephiumSpec {
   import CirceUtils._
@@ -40,5 +49,12 @@ class CirceUtilsSpec extends AlephiumSpec {
   it should "fail for address based on host name" in {
     val rawJson = addressJson("foobar")
     parse(rawJson).right.value.as[InetSocketAddress].isLeft is true
+  }
+
+  it should "encode/decode hexstring" in {
+    val jsonRaw = """{"bar": "48656c6c6f20776f726c642021"}"""
+    val json    = parse(jsonRaw).right.value
+    val foo     = json.as[Foo].right.value
+    foo.bar.utf8String is "Hello world !"
   }
 }
