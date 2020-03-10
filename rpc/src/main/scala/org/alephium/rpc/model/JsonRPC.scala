@@ -80,13 +80,13 @@ object JsonRPC extends StrictLogging {
     implicit val encoder: Encoder[Request] = deriveEncoder[Request].mapJson(versionSet)
   }
 
-  final case class NotificationUnsafe(jsonrpc: String, method: String, params: Json) {
+  final case class NotificationUnsafe(jsonrpc: String, method: String, params: Option[Json]) {
     def asNotification: Either[Error, Notification] =
       if (jsonrpc == JsonRPC.version) {
-        if (paramsCheck(params)) {
-          Right(Notification(method, params))
-        } else {
-          Left(Error.InvalidParams)
+        params match {
+          case Some(paramsExtracted) if paramsCheck(paramsExtracted) =>
+            Right(Notification(method, paramsExtracted))
+          case _ => Left(Error.InvalidParams)
         }
       } else {
         Left(Error.InvalidRequest)
