@@ -22,7 +22,7 @@ class JsonRPCHandlerSpec extends AlephiumSpec with ScalatestRouteTest with Eithe
 
     val route = JsonRPCHandler.routeHttp(handler)
 
-    val jsonRequest = JsonRPC.Request("foo", JsonObject.empty.asJson, 1).asJson.noSpaces
+    val jsonRequest = CirceUtils.print(JsonRPC.Request("foo", JsonObject.empty.asJson, 1).asJson)
     val httpRequest = HttpRequest(HttpMethods.POST,
                                   "/",
                                   entity = HttpEntity(MediaTypes.`application/json`, jsonRequest))

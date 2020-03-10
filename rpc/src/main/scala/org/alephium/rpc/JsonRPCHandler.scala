@@ -15,7 +15,7 @@ object JsonRPCHandler extends StrictLogging {
       case Right(requestUnsafe) =>
         requestUnsafe.runWith(handler)
       case Left(decodingFailure) =>
-        val jsonString    = CirceUtils.printer.print(json)
+        val jsonString    = CirceUtils.print(json)
         val failureString = decodingFailure.message
         logger.debug(s"Unable to decode JSON-RPC request $jsonString. ($failureString)")
         val response = Response.failed(Error.InvalidRequest)

@@ -12,9 +12,8 @@ import org.alephium.rpc.CirceUtils
 import org.alephium.util.AlephiumSpec
 
 class JsonRPCSpec extends AlephiumSpec with EitherValues with Inside {
-  val printer = CirceUtils.printer
   def show[T](data: T)(implicit encoder: Encoder[T]): String = {
-    printer.print(data.asJson)
+    CirceUtils.print(data.asJson)
   }
 
   val dummy = Future.successful(JsonRPC.Response.Success(Json.Null, 0))

@@ -24,7 +24,7 @@ class CirceUtilsSpec extends AlephiumSpec {
 
   def check[T: Codec](input: T, rawJson: String): Assertion = {
     val json = input.asJson
-    printer.print(json) is rawJson
+    print(json) is rawJson
     json.as[T].right.get is input
   }
 
