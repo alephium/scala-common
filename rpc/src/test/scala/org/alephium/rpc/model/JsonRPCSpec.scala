@@ -3,7 +3,7 @@ package org.alephium.rpc.model
 import scala.concurrent.Future
 import scala.util.Success
 
-import io.circe.{CursorOp, Decoder, DecodingFailure, Encoder, Json, JsonObject}
+import io.circe.{Decoder, Encoder, Json, JsonObject}
 import io.circe.parser._
 import io.circe.syntax._
 import org.scalatest.{Assertion, EitherValues, Inside}
@@ -20,13 +20,6 @@ class JsonRPCSpec extends AlephiumSpec with EitherValues with Inside {
   val dummy = Future.successful(JsonRPC.Response.Success(Json.Null, 0))
 
   def handler(method: String): JsonRPC.Handler = Map((method, (_: JsonRPC.Request) => dummy))
-
-  def parseFailOnField(jsonRaw: String, fieldName: String): Assertion = {
-    val json = parse(jsonRaw).right.value
-    val DecodingFailure(_, List(CursorOp.DownField(name))) =
-      json.as[JsonRPC.RequestUnsafe].left.value
-    name is fieldName
-  }
 
   def parseAs[A: Decoder](jsonRaw: String): A = {
     val json = parse(jsonRaw).right.value
@@ -114,7 +107,9 @@ class JsonRPCSpec extends AlephiumSpec with EitherValues with Inside {
   }
 
   it should "parse notification - fail with no params" in {
-    parseFailOnField("""{"jsonrpc": "1.0", "method": "foobar"}""", "params")
+    val jsonRaw = """{"jsonrpc": "2.0", "method": "foobar"}"""
+    val error   = parseNotificationUnsafe(jsonRaw).asNotification.left.value
+    error is JsonRPC.Error.InvalidParams
   }
 
   it should "parse notification - fail with null params" in {
@@ -147,10 +142,6 @@ class JsonRPCSpec extends AlephiumSpec with EitherValues with Inside {
       """{"jsonrpc": "2.0", "method": "foobar", "id": 1, "params": {}}""",
       jsonObjectEmpty
     )
-  }
-
-  it should "parse request - fail with no params" in {
-    parseFailOnField("""{"jsonrpc": "1.0", "method": "foobar"}""", "params")
   }
 
   it should "parse request - fail on wrong rpc version" in {
