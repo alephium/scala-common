@@ -4,8 +4,8 @@ import scala.concurrent.Future
 
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
+import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import io.circe.{Json, JsonObject}
-import io.circe.parser._
 import io.circe.syntax._
 import org.scalatest.EitherValues
 
@@ -19,22 +19,15 @@ class JsonRPCHandlerSpec extends AlephiumSpec with ScalatestRouteTest with Eithe
     val handler = Map("foo" -> { _: JsonRPC.Request =>
       Future.successful(response)
     })
-
     val route = JsonRPCHandler.routeHttp(handler)
 
-    val jsonRequest = JsonRPC.Request("foo", JsonObject.empty.asJson, 1).asJson.noSpaces
-    val httpRequest = HttpRequest(HttpMethods.POST,
-                                  "/",
-                                  entity = HttpEntity(MediaTypes.`application/json`, jsonRequest))
+    val jsonRequest = CirceUtils.print(JsonRPC.Request("foo", JsonObject.empty.asJson, 1).asJson)
+    val entity      = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+    val httpRequest = HttpRequest(HttpMethods.POST, entity = entity)
 
     httpRequest ~> route ~> check {
-      status.intValue is 200
-      contentType is MediaTypes.`application/json`
-      val text    = responseAs[String]
-      val json    = parse(text).right.value
-      val success = json.as[JsonRPC.Response.Success].right.value
-
-      text is """{"jsonrpc":"2.0","result":42,"id":1}"""
+      status is StatusCodes.OK
+      val success = responseAs[JsonRPC.Response.Success]
       success is response
     }
   }

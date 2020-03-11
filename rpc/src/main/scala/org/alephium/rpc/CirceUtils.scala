@@ -8,7 +8,11 @@ import scala.reflect.ClassTag
 import org.alephium.util.{AVector, Hex}
 
 object CirceUtils {
+  // scalastyle:off regex
   implicit val printer: Printer = Printer.noSpaces.copy(dropNullValues = true)
+  // scalastyle:on
+
+  def print(json: Json): String = printer.print(json)
 
   def codecXmap[T, U](to: T => U, from: U => T)(implicit codec: Codec[T]): Codec[U] = {
     val encoder = codec.contramap(from)
