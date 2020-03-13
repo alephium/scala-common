@@ -4,11 +4,13 @@ import org.scalacheck.Arbitrary.arbByte
 import org.scalacheck.Gen
 import org.scalactic.Equality
 import org.scalactic.source.Position
-import org.scalatest.{Assertion, FlatSpecLike, Matchers}
-import org.scalatest.words.ResultOfATypeInvocation
+import org.scalatest.Assertion
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.dsl.ResultOfATypeInvocation
+import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
-trait AlephiumSpec extends FlatSpecLike with ScalaCheckDrivenPropertyChecks with Matchers {
+trait AlephiumSpec extends AnyFlatSpecLike with ScalaCheckDrivenPropertyChecks with Matchers {
 
   lazy val bytesGen: Gen[AVector[Byte]] = Gen.listOf(arbByte.arbitrary).map(AVector.from)
 
