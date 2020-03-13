@@ -15,8 +15,8 @@ import io.circe.syntax._
 object JsonRPC extends StrictLogging {
   type Handler = Map[String, Request => Future[Response]]
 
-  val versionKey = "jsonrpc"
-  val version    = "2.0"
+  val versionKey: String = "jsonrpc"
+  val version: String    = "2.0"
 
   private def paramsCheck(json: Json): Boolean = json.isObject || json.isArray
   private def versionSet(json: Json): Json =
