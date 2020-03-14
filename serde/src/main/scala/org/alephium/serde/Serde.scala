@@ -49,25 +49,25 @@ trait Serde[T] extends Serializer[T] with Deserializer[T] { self =>
       case None    => Left(SerdeError.validation("validation error"))
     }, from)
 
-  def validate(predicate: T => Boolean, error: T => String): Serde[T] = new Serde[T] {
+  def validate(test: T => Either[String, Unit]): Serde[T] = new Serde[T] {
     override def serialize(input: T): ByteString = self.serialize(input)
 
     override def _deserialize(input: ByteString): SerdeResult[(T, ByteString)] = {
-      // write explicitly for performance
       self._deserialize(input).flatMap {
         case (t, rest) =>
-          if (predicate(t)) {
-            Right((t, rest))
-          } else Left(SerdeError.wrongFormat(error(t)))
+          test(t) match {
+            case Right(_)    => Right((t, rest))
+            case Left(error) => Left(SerdeError.validation(error))
+          }
       }
     }
 
     override def deserialize(input: ByteString): SerdeResult[T] = {
-      // write explicitly for performance
       self.deserialize(input).flatMap { t =>
-        if (predicate(t)) {
-          Right(t)
-        } else Left(SerdeError.wrongFormat(error(t)))
+        test(t) match {
+          case Right(_)    => Right(t)
+          case Left(error) => Left(SerdeError.validation(error))
+        }
       }
     }
   }
