@@ -73,7 +73,11 @@ lazy val util = subProject("util")
   )
 
 lazy val macros = subProject("macros")
-  .settings(libraryDependencies += `scala-reflect`(scalaVersion.value))
+  .settings(
+    libraryDependencies += `scala-reflect`(scalaVersion.value),
+    wartremoverErrors in (Compile, compile) := Warts.allBut(
+      wartsCompileExcludes :+ Wart.AsInstanceOf: _*)
+  )
 
 val commonSettings = Seq(
   organization := "org.alephium",
