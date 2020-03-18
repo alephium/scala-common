@@ -9,11 +9,13 @@ object EventBus {
     Props(new EventBus())
   }
 
-  sealed trait Command
+  trait Message
+
+  sealed trait Command    extends Message
   case object Subscribe   extends Command
   case object Unsubscribe extends Command
 
-  trait Event
+  trait Event extends Message
 }
 
 class EventBus() extends BaseActor {
