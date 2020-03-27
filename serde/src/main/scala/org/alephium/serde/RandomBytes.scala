@@ -47,15 +47,14 @@ trait RandomBytes {
 }
 
 object RandomBytes {
-  abstract class Companion[T: TypeTag](val unsafeFrom: ByteString => T,
-                                       val toBytes: T             => ByteString) {
-    lazy val zero: T = unsafeFrom(ByteString.fromArrayUnsafe(Array.fill[Byte](length)(0)))
+  abstract class Companion[T: TypeTag](val unsafe: ByteString => T, val toBytes: T => ByteString) {
+    lazy val zero: T = unsafe(ByteString.fromArrayUnsafe(Array.fill[Byte](length)(0)))
 
     def length: Int
 
     def from(bytes: ByteString): Option[T] = {
       if (bytes.nonEmpty && bytes.length == length) {
-        Some(unsafeFrom(bytes))
+        Some(unsafe(bytes))
       } else {
         None
       }
@@ -64,10 +63,10 @@ object RandomBytes {
     def generate: T = {
       val xs = Array.ofDim[Byte](length)
       source.nextBytes(xs)
-      unsafeFrom(ByteString.fromArrayUnsafe(xs))
+      unsafe(ByteString.fromArrayUnsafe(xs))
     }
 
-    implicit val serde: Serde[T] = Serde.bytesSerde(length).xmap(unsafeFrom, toBytes)
+    implicit val serde: Serde[T] = Serde.bytesSerde(length).xmap(unsafe, toBytes)
   }
 
   val source: SecureRandom = SecureRandom.getInstanceStrong

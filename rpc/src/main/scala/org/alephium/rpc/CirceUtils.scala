@@ -54,7 +54,7 @@ object CirceUtils {
   }
 
   implicit val byteStringDecoder: Decoder[ByteString] = new Decoder[ByteString] {
-    def apply(c: HCursor): Decoder.Result[ByteString] = c.as[String].map(Hex.unsafeFrom(_))
+    def apply(c: HCursor): Decoder.Result[ByteString] = c.as[String].map(Hex.unsafe(_))
   }
 
   implicit val inetAddressCodec: Codec[InetAddress] = {
