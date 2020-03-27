@@ -19,9 +19,9 @@ object AlephiumActorSpec {
   val config: String =
     """
       |akka {
-      |  loggers = ["akka.testkit.TestEventListener"]
-      |  stdout-loglevel = "WARNING"
-      |  loglevel = "WARNING"
+      |  loglevel = "DEBUG"
+      |  loggers = ["akka.event.slf4j.Slf4jLogger"]
+      |  logging-filter = "akka.event.slf4j.Slf4jLoggingFilter"
       |
       |  actor {
       |    debug {
