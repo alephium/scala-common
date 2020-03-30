@@ -7,13 +7,13 @@ import akka.util.ByteString
 import org.bouncycastle.util.encoders.{Hex => BHex}
 
 object Hex {
-  def unsafeFrom(s: String): ByteString = {
+  def unsafe(s: String): ByteString = {
     ByteString.fromArrayUnsafe(BHex.decode(s))
   }
 
   def from(s: String): Option[ByteString] =
     try {
-      Some(unsafeFrom(s))
+      Some(unsafe(s))
     } catch {
       case _: Throwable => None
     }

@@ -49,13 +49,11 @@ object CirceUtils {
     Codec.from(avectorDecoder[A], avectorEncoder[A])
   }
 
-  implicit val byteStringEncoder: Encoder[ByteString] = new Encoder[ByteString] {
-    def apply(bs: ByteString): Json = Json.fromString(Hex.toHexString(bs.toIndexedSeq))
-  }
+  implicit val byteStringEncoder: Encoder[ByteString] =
+    (bs: ByteString) => Json.fromString(Hex.toHexString(bs))
 
-  implicit val byteStringDecoder: Decoder[ByteString] = new Decoder[ByteString] {
-    def apply(c: HCursor): Decoder.Result[ByteString] = c.as[String].map(Hex.unsafeFrom(_))
-  }
+  implicit val byteStringDecoder: Decoder[ByteString] =
+    (c: HCursor) => c.as[String].map(Hex.unsafe)
 
   implicit val inetAddressCodec: Codec[InetAddress] = {
     codecXemap[String, InetAddress](createInetAddress, _.getHostAddress)

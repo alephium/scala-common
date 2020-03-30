@@ -21,8 +21,8 @@ object HashSchema {
   }
 }
 
-abstract class HashSchema[T: TypeTag](unsafeFrom: ByteString => T, toBytes: T => ByteString)
-    extends RandomBytes.Companion[T](unsafeFrom, toBytes) {
+abstract class HashSchema[T: TypeTag](unsafe: ByteString => T, toBytes: T => ByteString)
+    extends RandomBytes.Companion[T](unsafe, toBytes) {
   def provider: Digest
 
   def hash(input: Seq[Byte]): T = {
@@ -30,7 +30,7 @@ abstract class HashSchema[T: TypeTag](unsafeFrom: ByteString => T, toBytes: T =>
     _provider.update(input.toArray, 0, input.length)
     val res = new Array[Byte](length)
     _provider.doFinal(res, 0)
-    unsafeFrom(ByteString.fromArrayUnsafe(res))
+    unsafe(ByteString.fromArrayUnsafe(res))
   }
 
   def hash(input: String): T = {
