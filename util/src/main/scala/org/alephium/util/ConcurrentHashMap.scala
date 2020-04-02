@@ -47,7 +47,9 @@ class ConcurrentHashMap[K, V] private (m: JCHashMap[K, V]) {
     ()
   }
 
-  def values: Iterator[V] = m.values().iterator().asScala
+  def keys: Iterable[K] = m.keySet().asScala
+
+  def values: Iterable[V] = m.values().asScala
 
   def foreachValue(f: V => Unit): Unit = {
     val consumer = new Consumer[V] { override def accept(v: V): Unit = f(v) }

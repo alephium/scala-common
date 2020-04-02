@@ -32,5 +32,5 @@ class ConcurrentHashSet[K](s: JCHashMap[K, Boolean]) {
     ()
   }
 
-  def iterator: Iterator[K] = s.keys().asScala
+  def iterable: Iterable[K] = s.keySet().asScala
 }
