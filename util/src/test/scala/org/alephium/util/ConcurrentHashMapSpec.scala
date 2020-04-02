@@ -17,24 +17,4 @@ class ConcurrentHashMapSpec extends AlephiumSpec {
       map.removeIfExist(k)
     }
   }
-
-  it should "foreach / reduce" in new Fixture {
-    map.add(0, 0)
-    map.add(1, 2)
-    map.add(2, 4)
-
-    var sum = 0l
-    map.foreachValue(sum += _)
-    sum is 6
-
-    map.reduceValuesBy(identity)(_ + _) is 6
-    map.reduceValuesBy(identity)(math.max) is 4
-    map.reduceValuesBy(identity)(math.min) is 0
-    map.reduceValuesBy(-_)(math.max) is 0
-    map.reduceValuesBy(-_)(math.min) is -4
-
-    assertThrows[AssertionError](map.add(0, 0))
-    map.put(0, 1)
-    map.reduceValuesBy(identity)(_ + _) is 7
-  }
 }

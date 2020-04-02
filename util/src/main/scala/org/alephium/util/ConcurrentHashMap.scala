@@ -1,7 +1,7 @@
 package org.alephium.util
 
+import java.util.Map.Entry
 import java.util.concurrent.{ConcurrentHashMap => JCHashMap}
-import java.util.function.Consumer
 
 import scala.collection.JavaConverters._
 
@@ -51,23 +51,5 @@ class ConcurrentHashMap[K, V] private (m: JCHashMap[K, V]) {
 
   def values: Iterable[V] = m.values().asScala
 
-  def foreachValue(f: V => Unit): Unit = {
-    val consumer = new Consumer[V] { override def accept(v: V): Unit = f(v) }
-    m.values().forEach(consumer)
-  }
-
-  // throw exception if the map is empty
-  @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
-  def reduceValuesBy[W](f: V => W)(op: (W, W) => W): W = {
-    assume(!m.isEmpty)
-    var result: Option[W] = None
-    foreachValue { v =>
-      val w = f(v)
-      result match {
-        case Some(r) => result = Some(op(r, w))
-        case None    => result = Some(w)
-      }
-    }
-    result.get
-  }
+  def entries: Iterable[Entry[K, V]] = m.entrySet().asScala
 }
