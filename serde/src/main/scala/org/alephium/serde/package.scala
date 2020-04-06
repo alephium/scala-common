@@ -15,10 +15,10 @@ package object serde {
 
   def serdeImpl[T](implicit sd: Serde[T]): Serde[T] = sd
 
-  def serialize[T](input: T)(implicit serializer: Serde[T]): ByteString =
+  def serialize[T](input: T)(implicit serializer: Serializer[T]): ByteString =
     serializer.serialize(input)
 
-  def deserialize[T](input: ByteString)(implicit deserializer: Serde[T]): SerdeResult[T] =
+  def deserialize[T](input: ByteString)(implicit deserializer: Deserializer[T]): SerdeResult[T] =
     deserializer.deserialize(input)
 
   implicit val byteSerde: Serde[Byte] = ByteSerde
@@ -56,7 +56,7 @@ package object serde {
     avectorSerde[Byte].xmap(vc => BigInt(vc.toArray), bi => AVector.unsafe(bi.toByteArray))
 
   /*
-   * Note: only ipv4 and ipv6 addresses are suppported in the following serdes
+   * Note: only ipv4 and ipv6 addresses are supported in the following serdes
    * addresses based on hostnames are not supported
    */
 
