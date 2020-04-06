@@ -4,6 +4,8 @@ import java.nio.ByteBuffer
 
 import scala.language.postfixOps
 
+import akka.util.ByteString
+
 class BitsSpec extends AlephiumSpec {
   it should "convert byte into positive int" in {
     forAll { input: Byte =>
@@ -17,7 +19,7 @@ class BitsSpec extends AlephiumSpec {
     forAll { input: Int =>
       val output   = Bits.toBytes(input)
       val expected = ByteBuffer.allocate(4).putInt(input).array()
-      output is AVector.unsafe(expected)
+      output is ByteString.fromArrayUnsafe(expected)
     }
   }
 
