@@ -136,6 +136,17 @@ abstract class AVector[@sp A](implicit val ct: ClassTag[A]) extends Serializable
     true
   }
 
+  def forallE[L](f: A => Either[L, Boolean]): Either[L, Boolean] = {
+    foreach { a =>
+      f(a) match {
+        case Left(l)      => return Left(l)
+        case Right(false) => return Right(false)
+        case Right(true)  => ()
+      }
+    }
+    Right(true)
+  }
+
   def forallWithIndex(f: (A, Int) => Boolean): Boolean = {
     foreachWithIndex { (a, i) =>
       if (!f(a, i)) { return false }
@@ -187,6 +198,11 @@ abstract class AVector[@sp A](implicit val ct: ClassTag[A]) extends Serializable
   }
 
   def reverse: AVector[A] = {
+    if (length < 2) this else _reverse
+  }
+
+  @inline
+  private def _reverse: AVector[A] = {
     val arr       = new Array[A](length)
     val rightmost = end - 1
     cfor(0)(_ < length, _ + 1) { i =>
@@ -357,6 +373,22 @@ abstract class AVector[@sp A](implicit val ct: ClassTag[A]) extends Serializable
       acc = op(acc, f(elems(i)))
     }
     acc
+  }
+
+  def reduceByE[L, B: ClassTag](f: A => Either[L, B])(op: (B, B) => B): Either[L, B] = {
+    assume(nonEmpty)
+
+    var acc = f(elems(start)) match {
+      case Right(b) => b
+      case Left(l)  => return Left(l)
+    }
+    cfor(start + 1)(_ < end, _ + 1) { i =>
+      f(elems(i)) match {
+        case Right(b) => acc = op(acc, b)
+        case Left(l)  => return Left(l)
+      }
+    }
+    Right(acc)
   }
 
   def flatMap[B: ClassTag](f: A => AVector[B]): AVector[B] = {
@@ -544,6 +576,10 @@ abstract class AVector[@sp A](implicit val ct: ClassTag[A]) extends Serializable
       code = (code * 19) + elems(i).##
     }
     code
+  }
+
+  override def toString: String = {
+    toIterable.toString()
   }
 }
 // scalastyle:on
