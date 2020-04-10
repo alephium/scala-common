@@ -15,7 +15,7 @@ object ConcurrentHashMap {
 class ConcurrentHashMap[K, V] private (m: JCHashMap[K, V]) {
   def size: Int = m.size()
 
-  def apply(k: K): V = {
+  def getUnsafe(k: K): V = {
     val v = m.get(k)
     assert(v != null)
     v
@@ -33,11 +33,6 @@ class ConcurrentHashMap[K, V] private (m: JCHashMap[K, V]) {
   }
 
   def remove(k: K): Unit = {
-    val result = m.remove(k)
-    assert(result != null)
-  }
-
-  def removeIfExist(k: K): Unit = {
     m.remove(k)
     ()
   }
