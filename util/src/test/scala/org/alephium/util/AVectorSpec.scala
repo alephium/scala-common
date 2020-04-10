@@ -394,7 +394,7 @@ class IntAVectorSpec extends AVectorSpec[Int] {
     }
   }
 
-  it should "foldLeft" in new Fixture {
+  it should "fold / reduce / reduceBy" in new Fixture {
     forAll(vectorGen) { vc =>
       val arr = vc.toArray
 
@@ -411,9 +411,13 @@ class IntAVectorSpec extends AVectorSpec[Int] {
     }
   }
 
-  it should "foldE" in new FixtureF {
+  it should "foldE / reduceByE" in new FixtureF {
     forAll(vectorGen) { vc =>
-      vc.foldE(0)((acc, e) => Right(acc + e)).right.value is vc.sum
+      vc.foldE(0)((acc, e) => Right(acc + e)) isE vc.sum
+      vc.foldE(0)((_, _) => Left(())).isLeft is true
+
+      vc.reduceByE(e => Right(e))(_ + _) isE vc.sum
+      vc.reduceByE[Unit, Int](_ => Left(()))(_ + _).isLeft is true
     }
   }
 
@@ -421,6 +425,24 @@ class IntAVectorSpec extends AVectorSpec[Int] {
     forAll(vectorGen) { vc =>
       val expected = vc.sum + vc.indices.sum
       vc.foldWithIndexE(0)((acc, e, idx) => Right(acc + e + idx)).right.value is expected
+    }
+  }
+
+  it should "forall" in new Fixture {
+    AVector.empty[Int].forall(_ > 0) is true
+    AVector.empty[Int].forall(_ < 0) is true
+    AVector.empty[Int].forall(_ equals 0) is true
+    AVector(1, 2, 3).forall(_ > 0) is true
+    AVector(-1, 2, 3).forall(_ > 0) is false
+    AVector(1, -2, 3).forall(_ > 0) is false
+    AVector(1, 2, -3).forall(_ > 0) is false
+  }
+
+  it should "forallE" in new FixtureF {
+    forAll(vectorGen) { vc =>
+      vc.forallE(e => Right(e equals e)) isE true
+      vc.forallE(e => Right(e != vc.last)) isE false
+      vc.forallE(_ => Left(())).isLeft is true
     }
   }
 
