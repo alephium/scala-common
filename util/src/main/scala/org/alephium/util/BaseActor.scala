@@ -36,14 +36,12 @@ object BaseActor {
 }
 
 final class DefaultStrategy extends SupervisorStrategyConfigurator {
-
   val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   override def create(): SupervisorStrategy = {
-    val env = System.getenv("ALEPHIUM_ENV")
-    env match {
-      case "test" => stopStrategy
-      case _      => resumeStrategy
+    Env.resolve() match {
+      case Env.Prod => resumeStrategy
+      case _        => stopStrategy
     }
   }
 
