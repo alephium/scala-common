@@ -12,8 +12,7 @@ class ConcurrentHashMapSpec extends AlephiumSpec {
       map.contains(k) is true
       map.remove(k)
       map.contains(k) is false
-      assertThrows[AssertionError](map.remove(k))
-      map.removeIfExist(k)
+      map.remove(k)
     }
   }
 }
