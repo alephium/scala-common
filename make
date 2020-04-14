@@ -26,7 +26,7 @@ class AlephiumMake(object):
         run('sbt compile')
 
     def test(self):
-        run('sbt scalafmtSbt scalafmt test:scalafmt scalastyle test:scalastyle coverage test coverageReport doc')
+        run('sbt scalafmtSbt scalafmt test:scalafmt scalastyle test:scalastyle coverage test coverageReport')
         
     def publish(self):
         run('sbt publishLocal')
