@@ -17,7 +17,6 @@ object Dependencies {
   lazy val bcprov            = "org.bouncycastle"           % "bcprov-jdk15on"     % "1.64"
   lazy val `circe-parser`    = "io.circe"                   %% "circe-parser"      % Version.circe
   lazy val `circe-generic`   = "io.circe"                   %% "circe-generic"     % Version.circe
-  lazy val curve25519        = "org.whispersystems"         % "curve25519-java"    % "0.5.0"
   lazy val `scala-logging`   = "com.typesafe.scala-logging" %% "scala-logging"     % "3.9.2"
   lazy val scalacheck        = "org.scalacheck"             %% "scalacheck"        % "1.14.3" % Test
   lazy val scalatest         = "org.scalatest"              %% "scalatest"         % "3.1.1" % Test

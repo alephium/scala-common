@@ -32,11 +32,6 @@ def subProject(path: String): Project = {
 
 lazy val crypto = subProject("crypto")
   .dependsOn(util % "test->test;compile->compile", serde)
-  .settings(
-    libraryDependencies ++= Seq(
-      curve25519
-    )
-  )
 
 lazy val rpc = subProject("rpc")
   .settings(
