@@ -33,4 +33,5 @@ class AlephiumMake(object):
 
 
 if __name__ == '__main__':
+    print("test")
     AlephiumMake()
