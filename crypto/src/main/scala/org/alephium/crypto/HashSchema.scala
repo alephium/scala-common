@@ -11,12 +11,12 @@ import org.alephium.serde._
 
 object HashSchema {
   def unsafeKeccak256(bs: ByteString): Keccak256 = {
-    assert(bs.size == keccak256Length)
+    assert(bs.size == Keccak256.length)
     new Keccak256(bs)
   }
 
   def unsafeSha256(bs: ByteString): Sha256 = {
-    assert(bs.size == sha256Length)
+    assert(bs.size == Sha256.length)
     new Sha256(bs)
   }
 }
