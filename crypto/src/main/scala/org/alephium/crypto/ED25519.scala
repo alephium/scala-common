@@ -10,36 +10,36 @@ class ED25519PrivateKey(val bytes: ByteString) extends PrivateKey
 
 object ED25519PrivateKey
     extends RandomBytes.Companion[ED25519PrivateKey](bs => {
-      assert(bs.size == ed25519PriLength)
+      assert(bs.size == bcEd25519.SECRET_KEY_SIZE)
       new ED25519PrivateKey(bs)
     }, _.bytes) {
-  override def length: Int = ed25519PriLength
+  override def length: Int = bcEd25519.SECRET_KEY_SIZE
 }
 
 class ED25519PublicKey(val bytes: ByteString) extends PublicKey
 
 object ED25519PublicKey
     extends RandomBytes.Companion[ED25519PublicKey](bs => {
-      assert(bs.size == ed25519PubLength)
+      assert(bs.size == bcEd25519.PUBLIC_KEY_SIZE)
       new ED25519PublicKey(bs)
     }, _.bytes) {
-  override def length: Int = ed25519PubLength
+  override def length: Int = bcEd25519.PUBLIC_KEY_SIZE
 }
 
 class ED25519Signature(val bytes: ByteString) extends Signature
 
 object ED25519Signature
     extends RandomBytes.Companion[ED25519Signature](bs => {
-      assert(bs.size == ed25519SigLength)
+      assert(bs.size == bcEd25519.SIGNATURE_SIZE)
       new ED25519Signature(bs)
     }, _.bytes) {
-  override def length: Int = ed25519SigLength
+  override def length: Int = bcEd25519.SIGNATURE_SIZE
 }
 
 object ED25519 extends SignatureSchema[ED25519PrivateKey, ED25519PublicKey, ED25519Signature] {
   override def generatePriPub(): (ED25519PrivateKey, ED25519PublicKey) = {
-    val privateKey = Array.ofDim[Byte](ed25519PriLength)
-    val publicKey  = Array.ofDim[Byte](ed25519PubLength)
+    val privateKey = Array.ofDim[Byte](ED25519PrivateKey.length)
+    val publicKey  = Array.ofDim[Byte](ED25519PublicKey.length)
     bcEd25519.generatePrivateKey(RandomBytes.source, privateKey)
     bcEd25519.generatePublicKey(privateKey, 0, publicKey, 0)
     (ED25519PrivateKey.unsafe(ByteString.fromArrayUnsafe(privateKey)),
@@ -55,7 +55,7 @@ object ED25519 extends SignatureSchema[ED25519PrivateKey, ED25519PublicKey, ED25
   }
 
   private def sign(message: Array[Byte], privateKey: Array[Byte]): ED25519Signature = {
-    val signature = Array.ofDim[Byte](ed25519SigLength)
+    val signature = Array.ofDim[Byte](ED25519Signature.length)
     bcEd25519.sign(privateKey, 0, message, 0, message.length, signature, 0)
     ED25519Signature.unsafe(ByteString.fromArrayUnsafe(signature))
   }
