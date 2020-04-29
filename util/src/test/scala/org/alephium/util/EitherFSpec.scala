@@ -2,8 +2,6 @@ package org.alephium.util
 
 import scala.util.Random
 
-import org.scalatest.EitherValues._
-
 class EitherFSpec extends AlephiumSpec {
   it should "foreach for positive case" in {
     forAll { ns: Seq[Int] =>
@@ -29,7 +27,7 @@ class EitherFSpec extends AlephiumSpec {
   it should "fold for positive case" in {
     forAll { ns: Seq[Int] =>
       val result = EitherF.foldTry[Int, Unit, Int](ns, 0) { case (acc, n) => Right(acc + n) }
-      result.right.value is ns.sum
+      result isE ns.sum
     }
   }
 

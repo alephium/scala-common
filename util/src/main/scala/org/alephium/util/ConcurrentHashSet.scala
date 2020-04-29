@@ -2,7 +2,7 @@ package org.alephium.util
 
 import java.util.concurrent.{ConcurrentHashMap => JCHashMap}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object ConcurrentHashSet {
   def empty[K]: ConcurrentHashSet[K] = {

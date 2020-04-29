@@ -3,7 +3,7 @@ package org.alephium.util
 import java.util.Map.Entry
 import java.util.concurrent.{ConcurrentHashMap => JCHashMap}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object ConcurrentHashMap {
   def empty[K, V]: ConcurrentHashMap[K, V] = {

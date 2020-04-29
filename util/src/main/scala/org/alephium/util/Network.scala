@@ -11,7 +11,7 @@ object Network {
         val (left, right) = address.splitAt(splitIndex)
         new InetSocketAddress(left, right.tail.toInt)
       }
-      AVector(addresses: _*)
+      AVector.unsafe(addresses)
     }
   }
 }

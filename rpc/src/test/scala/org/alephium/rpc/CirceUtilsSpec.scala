@@ -8,7 +8,6 @@ import io.circe.generic.semiauto._
 import io.circe.parser._
 import io.circe.syntax._
 import org.scalatest.Assertion
-import org.scalatest.EitherValues._
 
 import org.alephium.util.{AlephiumSpec, AVector}
 
@@ -25,7 +24,7 @@ class CirceUtilsSpec extends AlephiumSpec {
   def check[T: Codec](input: T, rawJson: String): Assertion = {
     val json = input.asJson
     print(json) is rawJson
-    json.as[T].right.get is input
+    json.as[T] isE input
   }
 
   it should "encode/decode vectors" in {
@@ -48,13 +47,13 @@ class CirceUtilsSpec extends AlephiumSpec {
 
   it should "fail for address based on host name" in {
     val rawJson = addressJson("foobar")
-    parse(rawJson).right.value.as[InetSocketAddress].isLeft is true
+    parse(rawJson).toOption.get.as[InetSocketAddress].isLeft is true
   }
 
   it should "encode/decode hexstring" in {
     val jsonRaw = """{"bar": "48656c6c6f20776f726c642021"}"""
-    val json    = parse(jsonRaw).right.value
-    val foo     = json.as[Foo].right.value
+    val json    = parse(jsonRaw).toOption.get
+    val foo     = json.as[Foo].toOption.get
     foo.bar.utf8String is "Hello world !"
   }
 }

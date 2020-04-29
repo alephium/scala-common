@@ -5,7 +5,6 @@ import org.scalacheck.Gen
 import org.scalactic.Equality
 import org.scalactic.source.Position
 import org.scalatest.Assertion
-import org.scalatest.EitherValues._
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.dsl.ResultOfATypeInvocation
 import org.scalatest.matchers.should.Matchers
@@ -26,10 +25,10 @@ trait AlephiumSpec extends AnyFlatSpecLike with ScalaCheckDrivenPropertyChecks w
 
   implicit class IsEOps[A: Equality, L](left: Either[L, A])(implicit pos: Position) {
     // scalastyle:off scalatest-matcher
-    def isE(right: A): Assertion                             = left.right.value shouldEqual right
-    def isE(right: ResultOfATypeInvocation[_]): Assertion    = left.right.value shouldBe right
-    def isnotE(right: A): Assertion                          = left.right.value should not equal right
-    def isnotE(right: ResultOfATypeInvocation[_]): Assertion = left.right.value should not be right
+    def isE(right: A): Assertion                             = left.toOption.get shouldEqual right
+    def isE(right: ResultOfATypeInvocation[_]): Assertion    = left.toOption.get shouldBe right
+    def isnotE(right: A): Assertion                          = left.toOption.get should not equal right
+    def isnotE(right: ResultOfATypeInvocation[_]): Assertion = left.toOption.get should not be right
     // scalastyle:on scalatest-matcher
   }
 }
