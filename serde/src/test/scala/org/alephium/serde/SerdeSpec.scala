@@ -31,12 +31,12 @@ class SerdeSpec extends AlephiumSpec {
   it should "serde correctly" in {
     forAll { b: Byte =>
       val bb = deserialize[Byte](serialize(b))
-      bb.right.value is b
+      bb isE b
     }
 
     forAll { b: Byte =>
       val input  = ByteString(b)
-      val output = serialize(deserialize[Byte](input).right.value)
+      val output = serialize(deserialize[Byte](input).toOption.get)
       output is input
     }
   }
@@ -50,12 +50,12 @@ class SerdeSpec extends AlephiumSpec {
   it should "serde correctly" in {
     forAll { n: Int =>
       val nn = deserialize[Int](serialize(n))
-      nn.right.value is n
+      nn isE n
     }
 
     forAll { (a: Byte, b: Byte, c: Byte, d: Byte) =>
       val input  = ByteString(a, b, c, d)
-      val output = serialize(deserialize[Int](input).right.value)
+      val output = serialize(deserialize[Int](input).toOption.get)
       output is input
     }
   }
@@ -69,30 +69,30 @@ class SerdeSpec extends AlephiumSpec {
   it should "serde correctly" in {
     forAll { n: Long =>
       val nn = deserialize[Long](serialize(n))
-      nn.right.value is n
+      nn isE n
     }
   }
 
   checkException(LongSerde)
 
   "Serde for ByteString" should "serialize correctly" in {
-    deserialize[ByteString](serialize(ByteString.empty)).right.value is ByteString.empty
+    deserialize[ByteString](serialize(ByteString.empty)) isE ByteString.empty
     forAll { n: Int =>
       val bs = ByteString.fromInts(n)
-      deserialize[ByteString](serialize(bs)).right.value is bs
+      deserialize[ByteString](serialize(bs)) isE bs
     }
   }
 
   "Serde for String" should "serialize correctly" in {
     forAll { s: String =>
-      deserialize[String](serialize(s)).right.value is s
+      deserialize[String](serialize(s)) isE s
     }
   }
 
   "Serde for BigInt" should "serde correctly" in {
     forAll { n: Long =>
       val bn  = BigInt(n)
-      val bnn = deserialize[BigInt](serialize(bn)).right.value
+      val bnn = deserialize[BigInt](serialize(bn)).toOption.get
       bnn is bn
     }
   }
@@ -101,7 +101,7 @@ class SerdeSpec extends AlephiumSpec {
     forAll(bytesGen) { input: AVector[Byte] =>
       {
         val serde  = Serde.fixedSizeSerde(input.length, byteSerde)
-        val output = serde.deserialize(serde.serialize(input)).right.value
+        val output = serde.deserialize(serde.serialize(input)).toOption.get
         output is input
       }
       {
@@ -121,23 +121,23 @@ class SerdeSpec extends AlephiumSpec {
   "Serde for sequence" should "serde correctly" in {
     forAll(bytesGen) { input: AVector[Byte] =>
       val serde  = Serde.dynamicSizeSerde(byteSerde)
-      val output = serde.deserialize(serde.serialize(input)).right.value
+      val output = serde.deserialize(serde.serialize(input)).toOption.get
       output is input
     }
   }
 
   "Serde for option" should "work" in {
     forAll(Gen.option(Gen.choose(0, Int.MaxValue))) { input =>
-      deserialize[Option[Int]](serialize(input)).right.value is input
+      deserialize[Option[Int]](serialize(input)) isE input
     }
   }
 
   "Serde for either" should "work" in {
     forAll { (left: Int, right: Long) =>
       val input1: Either[Int, Long] = Left(left)
-      deserialize[Either[Int, Long]](serialize(input1)).right.value is input1
+      deserialize[Either[Int, Long]](serialize(input1)) isE input1
       val input2: Either[Int, Long] = Right(right)
-      deserialize[Either[Int, Long]](serialize(input2)).right.value is input2
+      deserialize[Either[Int, Long]](serialize(input2)) isE input2
     }
   }
 
@@ -160,7 +160,7 @@ class SerdeSpec extends AlephiumSpec {
     forAll { x: Int =>
       val input  = Test1(x)
       val output = deserialize[Test1](serialize(input))
-      output.right.value is input
+      output isE input
     }
   }
 
@@ -168,7 +168,7 @@ class SerdeSpec extends AlephiumSpec {
     forAll { (x: Int, y: Int) =>
       val input  = Test2(x, y)
       val output = deserialize[Test2](serialize(input))
-      output.right.value is input
+      output isE input
     }
   }
 
@@ -176,18 +176,18 @@ class SerdeSpec extends AlephiumSpec {
     forAll { (x: Int, y: Int, z: Int) =>
       val input  = Test3(x, y, z)
       val output = deserialize[Test3](serialize(input))
-      output.right.value is input
+      output isE input
     }
   }
 
   "Serde for address" should "serde correctly" in {
     val address0 = new InetSocketAddress("127.0.0.1", 9000)
     val output0  = deserialize[InetSocketAddress](serialize(address0))
-    output0.right.value is address0
+    output0 isE address0
 
     val address1 = new InetSocketAddress("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 9000)
     val output1  = deserialize[InetSocketAddress](serialize(address1))
-    output1.right.value is address1
+    output1 isE address1
   }
 
   it should "fail for address based on host name" in {

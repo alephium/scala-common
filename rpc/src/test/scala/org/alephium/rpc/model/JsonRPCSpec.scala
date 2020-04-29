@@ -21,12 +21,12 @@ class JsonRPCSpec extends AlephiumSpec with EitherValues with Inside {
   def handler(method: String): JsonRPC.Handler = Map((method, (_: JsonRPC.Request) => dummy))
 
   def parseAs[A: Decoder](jsonRaw: String): A = {
-    val json = parse(jsonRaw).right.value
-    json.as[A].right.value
+    val json = parse(jsonRaw).toOption.get
+    json.as[A].toOption.get
   }
 
   def parseNotification(jsonRaw: String): JsonRPC.Notification =
-    parseNotificationUnsafe(jsonRaw).asNotification.right.value
+    parseNotificationUnsafe(jsonRaw).asNotification.toOption.get
 
   def parseNotificationUnsafe(jsonRaw: String): JsonRPC.NotificationUnsafe =
     parseAs[JsonRPC.NotificationUnsafe](jsonRaw)
@@ -166,7 +166,7 @@ class JsonRPCSpec extends AlephiumSpec with EitherValues with Inside {
 
   it should "parse response - success" in {
     val jsonRaw  = """{"jsonrpc": "2.0", "result": 42, "id": 1}"""
-    val response = parse(jsonRaw).right.value.as[JsonRPC.Response].right.value
+    val response = parse(jsonRaw).toOption.get.as[JsonRPC.Response].toOption.get
 
     inside(response) {
       case JsonRPC.Response.Success(result, id) =>
@@ -177,7 +177,7 @@ class JsonRPCSpec extends AlephiumSpec with EitherValues with Inside {
 
   it should "parse response - failure" in {
     val jsonRaw  = """{"jsonrpc":"2.0","error":{"code":42,"message":"foo"},"id":1}"""
-    val response = parse(jsonRaw).right.value.as[JsonRPC.Response].right.value
+    val response = parse(jsonRaw).toOption.get.as[JsonRPC.Response].toOption.get
 
     inside(response) {
       case JsonRPC.Response.Failure(error, id) =>
@@ -188,7 +188,7 @@ class JsonRPCSpec extends AlephiumSpec with EitherValues with Inside {
 
   it should "parse success" in {
     val jsonRaw = """{"jsonrpc": "2.0", "result": 42, "id": 1}"""
-    val success = parse(jsonRaw).right.value.as[JsonRPC.Response.Success].right.value
+    val success = parse(jsonRaw).toOption.get.as[JsonRPC.Response.Success].toOption.get
 
     success.result is Json.fromInt(42)
     success.id is 1
@@ -196,7 +196,7 @@ class JsonRPCSpec extends AlephiumSpec with EitherValues with Inside {
 
   it should "parse success - fail on wrong rpc version" in {
     val jsonRaw = """{"jsonrpc": "1.0", "result": 42, "id": 1}"""
-    val error   = parse(jsonRaw).right.value.as[JsonRPC.Response].left.value
+    val error   = parse(jsonRaw).toOption.get.as[JsonRPC.Response].left.value
     error.message is "Invalid JSON-RPC version '1.0'"
   }
 }

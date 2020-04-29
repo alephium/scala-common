@@ -3,7 +3,7 @@ package org.alephium.util
 import java.util.{LinkedHashMap, Map}
 import java.util.Map.Entry
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object LruCache {
   def apply[K, V, E](maxCapacity: Int): LruCache[K, V, E] = {
