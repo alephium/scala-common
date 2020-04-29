@@ -2,12 +2,12 @@ package org.alephium.util
 
 import scala.{specialized => sp}
 import scala.collection.mutable.ArrayBuffer
+import scala.math.Ordering.Double.IeeeOrdering
 import scala.reflect.ClassTag
 import scala.util.Random
 
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.Assertion
-import org.scalatest.EitherValues._
 
 abstract class AVectorSpec[@sp A: ClassTag](implicit ab: Arbitrary[A], cmp: Ordering[A])
     extends AlephiumSpec {
@@ -44,7 +44,7 @@ abstract class AVectorSpec[@sp A: ClassTag](implicit ab: Arbitrary[A], cmp: Orde
       checkState(vector, 0, length, length, length, true)
     }
 
-    def checkEq(vc: AVector[A], xs: Seq[A]): Unit = {
+    def checkEq(vc: AVector[A], xs: scala.collection.mutable.Seq[A]): Unit = {
       vc.length is xs.length
       xs.indices.foreach { i =>
         vc(i) should be(xs(i))
@@ -260,10 +260,10 @@ abstract class AVectorSpec[@sp A: ClassTag](implicit ab: Arbitrary[A], cmp: Orde
       val p    = cmp.lt(_: A, a)
       val vc0  = vc.filterE[Unit](e => Right(p(e)))
       val arr0 = arr.filter(p)
-      checkEq(vc0.right.value, arr0)
+      checkEq(vc0.toOption.get, arr0)
       val vc1  = vc.filterNotE[Unit](e => Right(p(e)))
       val arr1 = arr.filterNot(p)
-      checkEq(vc1.right.value, arr1)
+      checkEq(vc1.toOption.get, arr1)
       vc.filterE[Unit](_    => Left(())).isLeft is true
       vc.filterNotE[Unit](_ => Left(())).isLeft is true
     }
@@ -278,7 +278,7 @@ abstract class AVectorSpec[@sp A: ClassTag](implicit ab: Arbitrary[A], cmp: Orde
 
   it should "traverse" in new FixtureF {
     forAll(vectorGen) { vc =>
-      vc.mapE(alwaysRight).right.value is vc
+      vc.mapE(alwaysRight) isE vc
       vc.mapE(alwaysLeft).isLeft is true
     }
   }
@@ -316,9 +316,9 @@ abstract class AVectorSpec[@sp A: ClassTag](implicit ab: Arbitrary[A], cmp: Orde
   it should "flatMapE" in new FixtureF {
     forAll(vectorGen) { vc =>
       val arr = vc.toArray
-      val vc0 = vc.flatMapE(e => Right(AVector(e))).right.value
+      val vc0 = vc.flatMapE(e => Right(AVector(e))).toOption.get
       checkEq(vc0, arr)
-      val vc1 = vc0.flatMapE(elem => Right(AVector(elem, elem))).right.value
+      val vc1 = vc0.flatMapE(elem => Right(AVector(elem, elem))).toOption.get
       checkEq(vc1, arr.flatMap(x => Array(x, x)))
     }
   }
@@ -424,7 +424,7 @@ class IntAVectorSpec extends AVectorSpec[Int] {
   it should "foldWithIndexE" in new FixtureF {
     forAll(vectorGen) { vc =>
       val expected = vc.sum + vc.indices.sum
-      vc.foldWithIndexE(0)((acc, e, idx) => Right(acc + e + idx)).right.value is expected
+      vc.foldWithIndexE(0)((acc, e, idx) => Right(acc + e + idx)) isE expected
     }
   }
 
