@@ -188,7 +188,6 @@ object Boilerplate {
         |package org.alephium.serde
         |
         |import org.alephium.util.AlephiumSpec
-        |import org.scalatest.EitherValues._
         |
         |class ProductSerdeSpec extends AlephiumSpec {
         |
@@ -202,7 +201,7 @@ object Boilerplate {
         +  it should "serde $arity fields" in {
         +    forAll { ($fields) =>
         +      val input  = Test$arity(${`a..n`})
-        +      val output = deserialize[Test$arity](serialize(input)).right.value
+        +      val output = deserialize[Test$arity](serialize(input)).toOption.get
         +      output is input
         +    }
         +  }
@@ -211,7 +210,7 @@ object Boilerplate {
         +    forAll { ($fields) =>
         +      val input  = (${`a..n`})
         +      val serde = Serde.tuple$arity[$types]
-        +      val output = serde.deserialize(serde.serialize(input)).right.value
+        +      val output = serde.deserialize(serde.serialize(input)).toOption.get
         +      output is input
         +    }
         +  }
