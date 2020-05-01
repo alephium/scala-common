@@ -9,7 +9,7 @@ object Version {
 object Dependencies {
   lazy val akka              = "com.typesafe.akka"          %% "akka-actor"        % Version.akka
   lazy val `akka-http`       = "com.typesafe.akka"          %% "akka-http"         % Version.`akka-http`
-  lazy val `akka-http-circe` = "de.heikoseeberger"          %% "akka-http-circe"   % "1.31.0"
+  lazy val `akka-http-circe` = "de.heikoseeberger"          %% "akka-http-circe"   % "1.32.0"
   lazy val `akka-slf4j`      = "com.typesafe.akka"          %% "akka-slf4j"        % Version.akka
   lazy val `akka-stream`     = "com.typesafe.akka"          %% "akka-stream"       % Version.akka
   lazy val akkatest          = "com.typesafe.akka"          %% "akka-testkit"      % Version.akka % Test
