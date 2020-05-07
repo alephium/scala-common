@@ -1,15 +1,23 @@
 package org.alephium.util
 
 import akka.actor.ActorSystem
-import akka.testkit.{ImplicitSender, TestKit}
+import akka.testkit.{ImplicitSender, TestKit, TestKitBase}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.BeforeAndAfterAll
 
-class AlephiumActorSpec(name: String)
-    extends TestKit(ActorSystem(name, ConfigFactory.parseString(AlephiumActorSpec.config)))
+class AlephiumActorSpec(val name: String) extends AlephiumActorSpecLike
+
+trait AlephiumActorSpecLike
+    extends TestKitBase
     with ImplicitSender
     with AlephiumSpec
     with BeforeAndAfterAll {
+
+  def name: String
+
+  implicit lazy val system: ActorSystem =
+    ActorSystem(name, ConfigFactory.parseString(AlephiumActorSpec.config))
+
   override def afterAll(): Unit = {
     TestKit.shutdownActorSystem(system)
   }
