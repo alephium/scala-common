@@ -13,7 +13,7 @@ class ED25519Spec extends AlephiumSpec {
   }
 
   it should "be verified with proper public key" in {
-    forAll(bytesGen, bytesGen) { (message1: AVector[Byte], message2: AVector[Byte]) =>
+    forAll { (message1: AVector[Byte], message2: AVector[Byte]) =>
       whenever(message1 != message2) {
         val (sk1, pk1) = ED25519.generatePriPub()
         val (_, pk2)   = ED25519.generatePriPub()

@@ -7,7 +7,7 @@ import org.scalacheck.Gen
 import org.scalatest.EitherValues._
 
 import org.alephium.serde.Serde.{ByteSerde, IntSerde, LongSerde}
-import org.alephium.util.{AlephiumSpec, AVector}
+import org.alephium.util.{AlephiumSpec, AVector, U32, U64}
 
 class SerdeSpec extends AlephiumSpec {
 
@@ -75,6 +75,18 @@ class SerdeSpec extends AlephiumSpec {
 
   checkException(LongSerde)
 
+  "Serde for U32" should "serde correct" in {
+    forAll { n: U32 =>
+      deserialize[U32](serialize(n)) isE n
+    }
+  }
+
+  "Serde for U64" should "serde correct" in {
+    forAll { n: U64 =>
+      deserialize[U64](serialize(n)) isE n
+    }
+  }
+
   "Serde for ByteString" should "serialize correctly" in {
     deserialize[ByteString](serialize(ByteString.empty)) isE ByteString.empty
     forAll { n: Int =>
@@ -98,7 +110,7 @@ class SerdeSpec extends AlephiumSpec {
   }
 
   "Serde for fixed size sequence" should "serde correctly" in {
-    forAll(bytesGen) { input: AVector[Byte] =>
+    forAll { input: AVector[Byte] =>
       {
         val serde  = Serde.fixedSizeSerde(input.length, byteSerde)
         val output = serde.deserialize(serde.serialize(input)).toOption.get
@@ -119,7 +131,7 @@ class SerdeSpec extends AlephiumSpec {
   }
 
   "Serde for sequence" should "serde correctly" in {
-    forAll(bytesGen) { input: AVector[Byte] =>
+    forAll { input: AVector[Byte] =>
       val serde  = Serde.dynamicSizeSerde(byteSerde)
       val output = serde.deserialize(serde.serialize(input)).toOption.get
       output is input

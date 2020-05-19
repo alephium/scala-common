@@ -1,7 +1,7 @@
 package org.alephium.util
 
-import org.scalacheck.Arbitrary.arbByte
-import org.scalacheck.Gen
+import org.scalacheck.Arbitrary
+import org.scalacheck.Arbitrary._
 import org.scalactic.Equality
 import org.scalactic.source.Position
 import org.scalatest.Assertion
@@ -12,7 +12,10 @@ import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
 trait AlephiumSpec extends AnyFlatSpecLike with ScalaCheckDrivenPropertyChecks with Matchers {
 
-  lazy val bytesGen: Gen[AVector[Byte]] = Gen.listOf(arbByte.arbitrary).map(AVector.from)
+  implicit lazy val bytesGen: Arbitrary[AVector[Byte]] = Arbitrary(
+    arbitrary[List[Byte]].map(AVector.from))
+  implicit lazy val u32Gen: Arbitrary[U32] = Arbitrary(arbitrary[Int].map(U32.unsafe))
+  implicit lazy val u64Gen: Arbitrary[U64] = Arbitrary(arbitrary[Long].map(U64.unsafe))
 
   implicit class IsOps[A: Equality](left: A)(implicit pos: Position) {
     // scalastyle:off scalatest-matcher
