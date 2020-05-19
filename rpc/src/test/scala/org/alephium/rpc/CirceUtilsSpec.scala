@@ -9,7 +9,7 @@ import io.circe.parser._
 import io.circe.syntax._
 import org.scalatest.Assertion
 
-import org.alephium.util.{AlephiumSpec, AVector}
+import org.alephium.util.{AlephiumSpec, AVector, TimeStamp}
 
 case class Foo(bar: ByteString)
 object Foo {
@@ -55,5 +55,16 @@ class CirceUtilsSpec extends AlephiumSpec {
     val json    = parse(jsonRaw).toOption.get
     val foo     = json.as[Foo].toOption.get
     foo.bar.utf8String is "Hello world !"
+  }
+
+  it should "encode/decode TimeStamp" in {
+    val rawTimestamp: Long = 1234589
+    val rawJson            = s"$rawTimestamp"
+    val timestamp          = TimeStamp.unsafe(rawTimestamp)
+    check(timestamp, rawJson)
+  }
+
+  it should "fail to decode negative TimeStamp" in {
+    parse("-12345").toOption.get.as[TimeStamp].isLeft is true
   }
 }

@@ -5,7 +5,7 @@ import io.circe._
 import java.net.{InetAddress, InetSocketAddress}
 import scala.reflect.ClassTag
 
-import org.alephium.util.{AVector, Hex}
+import org.alephium.util.{AVector, Hex, TimeStamp}
 
 object CirceUtils {
   // scalastyle:off regex
@@ -78,4 +78,11 @@ object CirceUtils {
     try Right(new InetSocketAddress(address, port))
     catch { case e: Throwable => Left(e.getMessage) }
   }
+
+  implicit val timestampEncoder: Encoder[TimeStamp] = Encoder.encodeLong.contramap(_.millis)
+
+  implicit val timestampDecoder: Decoder[TimeStamp] =
+    Decoder.decodeLong.ensure(_ >= 0, s"expect positive timestamp").map(TimeStamp.unsafe)
+
+  implicit val timestampCodec: Codec[TimeStamp] = Codec.from(timestampDecoder, timestampEncoder)
 }
