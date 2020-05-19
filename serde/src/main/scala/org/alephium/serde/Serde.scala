@@ -109,8 +109,7 @@ object Serde extends ProductSerde {
 
     override def serialize(input: Int): ByteString = {
       val buf = ByteBuffer.allocate(serdeSize).putInt(input)
-      buf.flip()
-      ByteString.fromByteBuffer(buf)
+      ByteString.fromArrayUnsafe(buf.array())
     }
 
     override def deserialize(input: ByteString): SerdeResult[Int] =
@@ -122,8 +121,7 @@ object Serde extends ProductSerde {
 
     override def serialize(input: Long): ByteString = {
       val buf = ByteBuffer.allocate(serdeSize).putLong(input)
-      buf.flip()
-      ByteString.fromByteBuffer(buf)
+      ByteString.fromArrayUnsafe(buf.array())
     }
 
     override def deserialize(input: ByteString): SerdeResult[Long] =

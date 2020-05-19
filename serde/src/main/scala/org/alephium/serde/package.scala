@@ -6,7 +6,7 @@ import scala.reflect.ClassTag
 
 import akka.util.ByteString
 
-import org.alephium.util.{AVector, TimeStamp}
+import org.alephium.util.{AVector, TimeStamp, U32, U64}
 
 package object serde {
   import Serde._
@@ -26,6 +26,10 @@ package object serde {
   implicit val intSerde: Serde[Int] = IntSerde
 
   implicit val longSerde: Serde[Long] = LongSerde
+
+  implicit val u32Serde: Serde[U32] = intSerde.xmap(U32.unsafe, _.value)
+
+  implicit val u64Serde: Serde[U64] = longSerde.xmap(U64.unsafe, _.value)
 
   implicit val bytestringSerde: Serde[ByteString] = ByteStringSerde
 
