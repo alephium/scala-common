@@ -31,4 +31,9 @@ trait AlephiumSpec extends AnyFlatSpecLike with ScalaCheckDrivenPropertyChecks w
     def isnotE(right: ResultOfATypeInvocation[_]): Assertion = left.toOption.get should not be right
     // scalastyle:on scalatest-matcher
   }
+
+  import java.math.BigInteger
+  implicit class BigIntegerWrapper(val n: BigInteger) extends Ordered[BigIntegerWrapper] {
+    override def compare(that: BigIntegerWrapper): Int = this.n.compareTo(that.n)
+  }
 }
