@@ -7,7 +7,7 @@ import org.scalacheck.Gen
 import org.scalatest.EitherValues._
 
 import org.alephium.serde.Serde.{ByteSerde, IntSerde, LongSerde}
-import org.alephium.util.{AlephiumSpec, AVector, U32, U64}
+import org.alephium.util._
 
 class SerdeSpec extends AlephiumSpec {
 
@@ -75,15 +75,41 @@ class SerdeSpec extends AlephiumSpec {
 
   checkException(LongSerde)
 
+  "Serde for I32" should "serde correct" in {
+    forAll { n: I32 =>
+      deserialize[I32](serialize(n)) isE n
+    }
+  }
+
   "Serde for U32" should "serde correct" in {
     forAll { n: U32 =>
       deserialize[U32](serialize(n)) isE n
     }
   }
 
+  "Serde for I64" should "serde correct" in {
+    forAll { n: I64 =>
+      deserialize[I64](serialize(n)) isE n
+    }
+  }
+
   "Serde for U64" should "serde correct" in {
     forAll { n: U64 =>
       deserialize[U64](serialize(n)) isE n
+    }
+  }
+
+  "Serde for I256" should "serde correct" in {
+    val cases = List(I256.Zero, I256.One, I256.NegOne, I256.MaxValue, I256.MinValue)
+    for (n <- cases) {
+      deserialize[I256](serialize(n)) isE n
+    }
+  }
+
+  "Serde for U256" should "serde correct" in {
+    val cases = List(U256.Zero, U256.One, U256.MaxValue, U256.MinValue)
+    for (n <- cases) {
+      deserialize[U256](serialize(n)) isE n
     }
   }
 
