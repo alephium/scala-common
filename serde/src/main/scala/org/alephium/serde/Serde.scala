@@ -1,13 +1,11 @@
 package org.alephium.serde
 
-import java.nio.ByteBuffer
-
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
 
 import akka.util.ByteString
 
-import org.alephium.util.AVector
+import org.alephium.util.{AVector, Bits}
 
 trait Serde[T] extends Serializer[T] with Deserializer[T] { self =>
   // Note: make sure that T and S are isomorphic
@@ -107,25 +105,19 @@ object Serde extends ProductSerde {
   private[serde] object IntSerde extends FixedSizeSerde[Int] {
     override val serdeSize: Int = java.lang.Integer.BYTES
 
-    override def serialize(input: Int): ByteString = {
-      val buf = ByteBuffer.allocate(serdeSize).putInt(input)
-      ByteString.fromArrayUnsafe(buf.array())
-    }
+    override def serialize(input: Int): ByteString = Bits.toBytes(input)
 
     override def deserialize(input: ByteString): SerdeResult[Int] =
-      deserialize0(input, _.asByteBuffer.getInt())
+      deserialize0(input, Bits.toIntUnsafe)
   }
 
   private[serde] object LongSerde extends FixedSizeSerde[Long] {
     override val serdeSize: Int = java.lang.Long.BYTES
 
-    override def serialize(input: Long): ByteString = {
-      val buf = ByteBuffer.allocate(serdeSize).putLong(input)
-      ByteString.fromArrayUnsafe(buf.array())
-    }
+    override def serialize(input: Long): ByteString = Bits.toBytes(input)
 
     override def deserialize(input: ByteString): SerdeResult[Long] =
-      deserialize0(input, _.asByteBuffer.getLong())
+      deserialize0(input, Bits.toLongUnsafe)
   }
 
   private[serde] object ByteStringSerde extends Serde[ByteString] {
