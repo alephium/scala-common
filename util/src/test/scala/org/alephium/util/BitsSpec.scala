@@ -20,6 +20,18 @@ class BitsSpec extends AlephiumSpec {
       val output   = Bits.toBytes(input)
       val expected = ByteBuffer.allocate(4).putInt(input).array()
       output is ByteString.fromArrayUnsafe(expected)
+
+      Bits.toIntUnsafe(Bits.toBytes(input)) is input
+    }
+  }
+
+  it should "convert long to correct bytes" in {
+    forAll { input: Long =>
+      val output   = Bits.toBytes(input)
+      val expected = ByteBuffer.allocate(8).putLong(input).array()
+      output is ByteString.fromArrayUnsafe(expected)
+
+      Bits.toLongUnsafe(Bits.toBytes(input)) is input
     }
   }
 
