@@ -2,6 +2,8 @@ package org.alephium.util
 
 import java.math.BigInteger
 
+import akka.util.ByteString
+
 class I256(val value: BigInteger) extends AnyVal with Ordered[I256] {
   import I256.validate
 
@@ -66,6 +68,21 @@ class I256(val value: BigInteger) extends AnyVal with Ordered[I256] {
   def compare(that: I256): Int = this.value.compareTo(that.value)
 
   def toBigInt: BigInteger = value
+
+  def toBytes: ByteString = {
+    val tmp           = ByteString.fromArrayUnsafe(value.toByteArray)
+    val paddingLength = 32 - tmp.length
+    if (paddingLength > 0) {
+      if (this >= I256.Zero) {
+        ByteString.fromArrayUnsafe(Array.fill(paddingLength)(0)) ++ tmp
+      } else {
+        ByteString.fromArrayUnsafe(Array.fill(paddingLength)(0xff.toByte)) ++ tmp
+      }
+    } else {
+      assume(paddingLength == 0)
+      tmp
+    }
+  }
 }
 
 object I256 {
@@ -81,6 +98,11 @@ object I256 {
   def unsafe(value: BigInteger): I256 = {
     assume(validate(value))
     new I256(value)
+  }
+
+  def unsafe(bytes: ByteString): I256 = {
+    assume(bytes.length == 32)
+    new I256(new BigInteger(bytes.toArray))
   }
 
   def from(value: BigInteger): Option[I256] = {

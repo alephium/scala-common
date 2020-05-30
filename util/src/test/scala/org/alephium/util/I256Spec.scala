@@ -87,4 +87,11 @@ class I256Spec extends AlephiumSpec {
       aI256.compareTo(bI256) is a.compareTo(b)
     }
   }
+
+  it should "convert to/from bytes" in {
+    val cases = List(I256.Zero, I256.One, I256.NegOne, I256.MaxValue, I256.MinValue)
+    for (i256 <- cases) {
+      I256.unsafe(i256.toBytes) is i256
+    }
+  }
 }
