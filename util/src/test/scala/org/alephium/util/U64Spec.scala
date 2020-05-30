@@ -3,11 +3,12 @@ package org.alephium.util
 import java.math.BigInteger
 
 class U64Spec extends AlephiumSpec {
-  val numGen = (0L to 3L).flatMap(i => List(i - 1, Long.MinValue + i, Long.MaxValue - i))
+  val numGen = (0L to 4L).flatMap(i => List(i - 2, Long.MinValue + i, Long.MaxValue - i))
 
   it should "convert to BigInt" in {
     U64.Zero.toBigInt is BigInteger.ZERO
     U64.One.toBigInt is BigInteger.ONE
+    U64.Two.toBigInt is BigInteger.TWO
     U64.MaxValue.toBigInt is BigInteger.TWO.pow(64).subtract(BigInteger.ONE)
   }
 
