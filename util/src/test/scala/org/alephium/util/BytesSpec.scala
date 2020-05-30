@@ -6,10 +6,10 @@ import scala.language.postfixOps
 
 import akka.util.ByteString
 
-class BitsSpec extends AlephiumSpec {
+class BytesSpec extends AlephiumSpec {
   it should "convert byte into positive int" in {
     forAll { input: Byte =>
-      val output = Bits.toPosInt(input)
+      val output = Bytes.toPosInt(input)
       output >= 0 is true
       output.toByte is input
     }
@@ -17,28 +17,28 @@ class BitsSpec extends AlephiumSpec {
 
   it should "convert int to correct bytes" in {
     forAll { input: Int =>
-      val output   = Bits.toBytes(input)
+      val output   = Bytes.toBytes(input)
       val expected = ByteBuffer.allocate(4).putInt(input).array()
       output is ByteString.fromArrayUnsafe(expected)
 
-      Bits.toIntUnsafe(Bits.toBytes(input)) is input
+      Bytes.toIntUnsafe(Bytes.toBytes(input)) is input
     }
   }
 
   it should "convert long to correct bytes" in {
     forAll { input: Long =>
-      val output   = Bits.toBytes(input)
+      val output   = Bytes.toBytes(input)
       val expected = ByteBuffer.allocate(8).putLong(input).array()
       output is ByteString.fromArrayUnsafe(expected)
 
-      Bits.toLongUnsafe(Bits.toBytes(input)) is input
+      Bytes.toLongUnsafe(Bytes.toBytes(input)) is input
     }
   }
 
   it should "compute correct xor byte for int" in {
     forAll { input: Int =>
-      val output   = Bits.xorByte(input)
-      val bytes    = Bits.toBytes(input)
+      val output   = Bytes.xorByte(input)
+      val bytes    = Bytes.toBytes(input)
       val expected = bytes.tail.fold(bytes.head)(_ ^ _ toByte)
       output is expected
     }

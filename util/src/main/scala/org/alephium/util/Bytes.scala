@@ -2,7 +2,7 @@ package org.alephium.util
 
 import akka.util.ByteString
 
-object Bits {
+object Bytes {
   def toPosInt(byte: Byte): Int = {
     byte & 0xFF
   }
