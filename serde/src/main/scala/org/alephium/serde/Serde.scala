@@ -5,7 +5,7 @@ import scala.reflect.ClassTag
 
 import akka.util.ByteString
 
-import org.alephium.util.{AVector, Bits}
+import org.alephium.util.{AVector, Bytes}
 
 trait Serde[T] extends Serializer[T] with Deserializer[T] { self =>
   // Note: make sure that T and S are isomorphic
@@ -105,19 +105,19 @@ object Serde extends ProductSerde {
   private[serde] object IntSerde extends FixedSizeSerde[Int] {
     override val serdeSize: Int = java.lang.Integer.BYTES
 
-    override def serialize(input: Int): ByteString = Bits.toBytes(input)
+    override def serialize(input: Int): ByteString = Bytes.toBytes(input)
 
     override def deserialize(input: ByteString): SerdeResult[Int] =
-      deserialize0(input, Bits.toIntUnsafe)
+      deserialize0(input, Bytes.toIntUnsafe)
   }
 
   private[serde] object LongSerde extends FixedSizeSerde[Long] {
     override val serdeSize: Int = java.lang.Long.BYTES
 
-    override def serialize(input: Long): ByteString = Bits.toBytes(input)
+    override def serialize(input: Long): ByteString = Bytes.toBytes(input)
 
     override def deserialize(input: ByteString): SerdeResult[Long] =
-      deserialize0(input, Bits.toLongUnsafe)
+      deserialize0(input, Bytes.toLongUnsafe)
   }
 
   private[serde] object ByteStringSerde extends Serde[ByteString] {
