@@ -74,4 +74,11 @@ class U256Spec extends AlephiumSpec {
       aU256.compareTo(bU256) is a.compareTo(b)
     }
   }
+
+  it should "convert to/from bytes" in {
+    val cases = List(U256.Zero, U256.One, U256.MaxValue, U256.MinValue)
+    for (u256 <- cases) {
+      U256.unsafe(u256.toBytes) is u256
+    }
+  }
 }

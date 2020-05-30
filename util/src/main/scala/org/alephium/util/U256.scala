@@ -2,6 +2,8 @@ package org.alephium.util
 
 import java.math.BigInteger
 
+import akka.util.ByteString
+
 class U256(val value: BigInteger) extends AnyVal with Ordered[U256] {
   import U256.validate
 
@@ -64,6 +66,16 @@ class U256(val value: BigInteger) extends AnyVal with Ordered[U256] {
   def compare(that: U256): Int = this.value.compareTo(that.value)
 
   def toBigInt: BigInteger = value
+
+  @SuppressWarnings(Array("org.wartremover.warts.TraversableOps"))
+  def toBytes: ByteString = {
+    val tmp           = ByteString.fromArrayUnsafe(value.toByteArray)
+    val paddingLength = 32 - tmp.length
+    if (paddingLength < 0) tmp.tail
+    else if (paddingLength > 0) {
+      ByteString.fromArrayUnsafe(Array.fill(paddingLength)(0)) ++ tmp
+    } else tmp
+  }
 }
 
 object U256 {
@@ -76,6 +88,11 @@ object U256 {
   def unsafe(value: BigInteger): U256 = {
     assume(validate(value))
     new U256(value)
+  }
+
+  def unsafe(bytes: ByteString): U256 = {
+    assume(bytes.length == 32)
+    new U256(new BigInteger(1, bytes.toArray))
   }
 
   def from(value: BigInteger): Option[U256] = {
