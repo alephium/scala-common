@@ -54,6 +54,10 @@ abstract class AVector[@sp A](implicit val ct: ClassTag[A]) extends Serializable
     elems(start + i)
   }
 
+  def get(i: Int): Option[A] = {
+    if (i >= 0 && i < length) Some(elems(start + i)) else None
+  }
+
   private[util] def ensureSize(n: Int): Unit = {
     assert(n >= 0)
 
@@ -239,6 +243,12 @@ abstract class AVector[@sp A](implicit val ct: ClassTag[A]) extends Serializable
       }
     }
     Right(res)
+  }
+
+  def mapToArray[B: ClassTag](f: A => B): Array[B] = {
+    Array.tabulate(length) { i =>
+      f(apply(i))
+    }
   }
 
   def mapWithIndex[@sp B: ClassTag](f: (A, Int) => B): AVector[B] = {
