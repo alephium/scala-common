@@ -90,6 +90,11 @@ object U256 {
     new U256(value)
   }
 
+  def unsafe(value: Long): U256 = {
+    assume(value >= 0)
+    new U256(BigInteger.valueOf(value))
+  }
+
   def unsafe(bytes: ByteString): U256 = {
     assume(bytes.length == 32)
     new U256(new BigInteger(1, bytes.toArray))

@@ -109,6 +109,10 @@ object I256 {
     if (validate(value)) Some(new I256(value)) else None
   }
 
+  def from(value: Long): I256 = {
+    new I256(BigInteger.valueOf(value))
+  }
+
   val Zero: I256     = unsafe(BigInteger.ZERO)
   val One: I256      = unsafe(BigInteger.ONE)
   val Two: I256      = unsafe(BigInteger.TWO)

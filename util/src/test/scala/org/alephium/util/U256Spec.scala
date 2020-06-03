@@ -81,4 +81,14 @@ class U256Spec extends AlephiumSpec {
       U256.unsafe(u256.toBytes) is u256
     }
   }
+
+  it should "construct from Long" in {
+    forAll { x: Long =>
+      if (x >= 0) {
+        U256.unsafe(x).toBigInt is BigInteger.valueOf(x)
+      } else {
+        assertThrows[AssertionError](U256.unsafe(x))
+      }
+    }
+  }
 }
