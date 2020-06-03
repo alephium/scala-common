@@ -94,4 +94,10 @@ class I256Spec extends AlephiumSpec {
       I256.unsafe(i256.toBytes) is i256
     }
   }
+
+  it should "construct from Long" in {
+    forAll { x: Long =>
+      I256.from(x).toBigInt is BigInteger.valueOf(x)
+    }
+  }
 }
