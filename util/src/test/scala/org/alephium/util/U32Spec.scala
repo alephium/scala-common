@@ -12,6 +12,13 @@ class U32Spec extends AlephiumSpec {
     U32.MaxValue.toBigInt is BigInteger.TWO.pow(32).subtract(BigInteger.ONE)
   }
 
+  it should "convert from BigInt" in {
+    U32.from(U32.MinValue.toBigInt).get is U32.MinValue
+    U32.from(U32.MaxValue.toBigInt).get is U32.MaxValue
+    U32.from(U32.MinValue.toBigInt.subtract(BigInteger.ONE)).isEmpty is true
+    U32.from(U32.MaxValue.toBigInt.add(BigInteger.ONE)).isEmpty is true
+  }
+
   def test(op: (U32, U32)                       => Option[U32],
            opUnsafe: (U32, U32)                 => U32,
            opExpected: (BigInteger, BigInteger) => BigInteger,

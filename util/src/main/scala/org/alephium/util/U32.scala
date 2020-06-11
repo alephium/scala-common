@@ -80,10 +80,20 @@ object U32 {
 
   def from(value: Int): Option[U32] = if (value >= 0) Some(unsafe(value)) else None
 
+  def from(value: BigInteger): Option[U32] =
+    try {
+      if (Numeric.nonNegative(value) && value.bitLength() <= 32) {
+        Some(unsafe(value.intValue()))
+      } else None
+    } catch {
+      case _: ArithmeticException => None
+    }
+
   val Zero: U32     = unsafe(0)
   val One: U32      = unsafe(1)
   val Two: U32      = unsafe(2)
   val MaxValue: U32 = unsafe(-1)
+  val MinValue: U32 = Zero
 
   @inline private def checkAdd(a: U32, c: Int): Boolean = {
     JInt.compareUnsigned(c, a.v) >= 0
