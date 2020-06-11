@@ -12,6 +12,13 @@ class U64Spec extends AlephiumSpec {
     U64.MaxValue.toBigInt is BigInteger.TWO.pow(64).subtract(BigInteger.ONE)
   }
 
+  it should "convert from BigInt" in {
+    U64.from(U64.MinValue.toBigInt).get is U64.MinValue
+    U64.from(U64.MaxValue.toBigInt).get is U64.MaxValue
+    U64.from(U64.MinValue.toBigInt.subtract(BigInteger.ONE)).isEmpty is true
+    U64.from(U64.MaxValue.toBigInt.add(BigInteger.ONE)).isEmpty is true
+  }
+
   def test(op: (U64, U64)                       => Option[U64],
            opUnsafe: (U64, U64)                 => U64,
            opExpected: (BigInteger, BigInteger) => BigInteger,

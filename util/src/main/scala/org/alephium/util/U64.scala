@@ -83,10 +83,20 @@ object U64 {
 
   def from(value: Long): Option[U64] = if (value >= 0) Some(unsafe(value)) else None
 
+  def from(value: BigInteger): Option[U64] =
+    try {
+      if (Numeric.nonNegative(value) && value.bitLength() <= 64) {
+        Some(unsafe(value.longValue()))
+      } else None
+    } catch {
+      case _: ArithmeticException => None
+    }
+
   val Zero: U64     = unsafe(0)
   val One: U64      = unsafe(1)
   val Two: U64      = unsafe(2)
   val MaxValue: U64 = unsafe(-1)
+  val MinValue: U64 = Zero
 
   @inline private def checkAdd(a: U64, c: Long): Boolean = {
     JLong.compareUnsigned(c, a.v) >= 0

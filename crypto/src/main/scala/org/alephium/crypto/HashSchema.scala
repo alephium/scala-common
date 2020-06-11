@@ -19,6 +19,11 @@ object HashSchema {
     assert(bs.size == Sha256.length)
     new Sha256(bs)
   }
+
+  def unsafeByte32(bs: ByteString): Byte32 = {
+    assume(bs.size == Byte32.length)
+    new Byte32(bs)
+  }
 }
 
 abstract class HashSchema[T: TypeTag](unsafe: ByteString => T, toBytes: T => ByteString)

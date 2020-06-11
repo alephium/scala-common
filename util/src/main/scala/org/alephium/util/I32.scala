@@ -81,6 +81,13 @@ object I32 {
 
   def from(value: Int): Option[I32] = if (value >= 0) Some(unsafe(value)) else None
 
+  def from(value: BigInteger): Option[I32] =
+    try {
+      Some(unsafe(value.intValueExact()))
+    } catch {
+      case _: ArithmeticException => None
+    }
+
   val Zero: I32     = unsafe(0)
   val One: I32      = unsafe(1)
   val Two: I32      = unsafe(2)

@@ -210,7 +210,7 @@ object Serde extends ProductSerde {
     override val serdeSize: Int = bytes
 
     override def serialize(bs: ByteString): ByteString = {
-      assert(bs.length == serdeSize)
+      assume(bs.length == serdeSize)
       bs
     }
 

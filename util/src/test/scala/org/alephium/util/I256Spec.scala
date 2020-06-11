@@ -26,6 +26,13 @@ class I256Spec extends AlephiumSpec {
     I256.MinValue.toBigInt is BigInteger.TWO.pow(255).negate()
   }
 
+  it should "convert from BigInt" in {
+    I256.from(I256.MinValue.toBigInt).get is I256.MinValue
+    I256.from(I256.MaxValue.toBigInt).get is I256.MaxValue
+    I256.from(I256.MinValue.toBigInt.subtract(BigInteger.ONE)).isEmpty is true
+    I256.from(I256.MaxValue.toBigInt.add(BigInteger.ONE)).isEmpty is true
+  }
+
   def test(
       op: (I256, I256)                     => Option[I256],
       opUnsafe: (I256, I256)               => I256,

@@ -81,6 +81,13 @@ object I64 {
 
   def from(value: Long): Option[I64] = if (value >= 0) Some(unsafe(value)) else None
 
+  def from(value: BigInteger): Option[I64] =
+    try {
+      Some(unsafe(value.longValueExact()))
+    } catch {
+      case _: ArithmeticException => None
+    }
+
   val Zero: I64     = unsafe(0)
   val One: I64      = unsafe(1)
   val Two: I64      = unsafe(2)

@@ -79,10 +79,10 @@ class U256(val v: BigInteger) extends AnyVal with Ordered[U256] {
 }
 
 object U256 {
-  private[util] val upperBound = BigInteger.valueOf(2).pow(256)
+  private[util] val upperBound = BigInteger.ONE.shiftLeft(256)
 
   private[util] def validate(value: BigInteger): Boolean = {
-    (value.signum() >= 0) && (value.compareTo(upperBound) < 0)
+    Numeric.nonNegative(value) && value.bitLength() <= 256
   }
 
   def unsafe(value: BigInteger): U256 = {

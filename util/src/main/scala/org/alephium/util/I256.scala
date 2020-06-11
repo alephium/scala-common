@@ -87,12 +87,12 @@ class I256(val v: BigInteger) extends AnyVal with Ordered[I256] {
 
 object I256 {
   // scalastyle:off magic.number
-  private[util] val upperBound = BigInteger.valueOf(2).pow(255) // exclusive
+  private[util] val upperBound = BigInteger.ONE.shiftLeft(255) // exclusive
   private[util] val lowerBound = upperBound.negate() // inclusive
   // scalastyle:on magic.number
 
   private[util] def validate(value: BigInteger): Boolean = {
-    (value.compareTo(lowerBound) >= 0) && (value.compareTo(upperBound) < 0)
+    value.bitLength() <= 255
   }
 
   def unsafe(value: BigInteger): I256 = {
