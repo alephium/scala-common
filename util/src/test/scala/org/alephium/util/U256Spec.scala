@@ -23,6 +23,13 @@ class U256Spec extends AlephiumSpec {
     U256.MaxValue.toBigInt is BigInteger.TWO.pow(256).subtract(BigInteger.ONE)
   }
 
+  it should "convert from BigInt" in {
+    U256.from(U256.MinValue.toBigInt).get is U256.MinValue
+    U256.from(U256.MaxValue.toBigInt).get is U256.MaxValue
+    U256.from(U256.MinValue.toBigInt.subtract(BigInteger.ONE)).isEmpty is true
+    U256.from(U256.MaxValue.toBigInt.add(BigInteger.ONE)).isEmpty is true
+  }
+
   def test(op: (U256, U256)                     => Option[U256],
            opUnsafe: (U256, U256)               => U256,
            opExpected: (BigInteger, BigInteger) => BigInteger,
