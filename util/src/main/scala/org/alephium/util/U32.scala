@@ -76,13 +76,17 @@ class U32(val v: Int) extends AnyVal with Ordered[U32] {
 object U32 {
   import java.lang.{Integer => JInt}
 
+  def validate(value: BigInteger): Boolean = {
+    Numeric.nonNegative(value) && value.bitLength() <= 32
+  }
+
   def unsafe(value: Int): U32 = new U32(value)
 
   def from(value: Int): Option[U32] = if (value >= 0) Some(unsafe(value)) else None
 
   def from(value: BigInteger): Option[U32] =
     try {
-      if (Numeric.nonNegative(value) && value.bitLength() <= 32) {
+      if (validate(value)) {
         Some(unsafe(value.intValue()))
       } else None
     } catch {

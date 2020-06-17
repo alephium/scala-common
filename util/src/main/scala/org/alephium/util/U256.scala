@@ -81,7 +81,7 @@ class U256(val v: BigInteger) extends AnyVal with Ordered[U256] {
 object U256 {
   private[util] val upperBound = BigInteger.ONE.shiftLeft(256)
 
-  private[util] def validate(value: BigInteger): Boolean = {
+  def validate(value: BigInteger): Boolean = {
     Numeric.nonNegative(value) && value.bitLength() <= 256
   }
 
