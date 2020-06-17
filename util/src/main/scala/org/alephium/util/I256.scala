@@ -91,8 +91,12 @@ object I256 {
   private[util] val lowerBound = upperBound.negate() // inclusive
   // scalastyle:on magic.number
 
-  private[util] def validate(value: BigInteger): Boolean = {
+  def validate(value: BigInteger): Boolean = {
     value.bitLength() <= 255
+  }
+
+  def unsafe(value: Long): I256 = {
+    new I256(BigInteger.valueOf(value))
   }
 
   def unsafe(value: BigInteger): I256 = {

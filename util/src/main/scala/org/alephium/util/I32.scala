@@ -81,6 +81,10 @@ object I32 {
 
   def from(value: Int): Option[I32] = if (value >= 0) Some(unsafe(value)) else None
 
+  def validate(value: BigInteger): Boolean = {
+    value.bitLength() <= 31
+  }
+
   def from(value: BigInteger): Option[I32] =
     try {
       Some(unsafe(value.intValueExact()))

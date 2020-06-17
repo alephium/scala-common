@@ -81,6 +81,10 @@ object I64 {
 
   def from(value: Long): Option[I64] = if (value >= 0) Some(unsafe(value)) else None
 
+  def validate(value: BigInteger): Boolean = {
+    value.bitLength() <= 63
+  }
+
   def from(value: BigInteger): Option[I64] =
     try {
       Some(unsafe(value.longValueExact()))
