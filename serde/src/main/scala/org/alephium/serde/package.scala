@@ -31,7 +31,7 @@ package object serde {
 
   implicit val u32Serde: Serde[U32] = intSerde.xmap(U32.unsafe, _.v)
 
-  implicit val i64Serde: Serde[I64] = longSerde.xmap(I64.unsafe, _.v)
+  implicit val i64Serde: Serde[I64] = longSerde.xmap(I64.from, _.v)
 
   implicit val u64Serde: Serde[U64] = longSerde.xmap(U64.unsafe, _.v)
 

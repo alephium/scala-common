@@ -9,6 +9,8 @@ class I256(val v: BigInteger) extends AnyVal with Ordered[I256] {
 
   @inline def isZero: Boolean = v.signum() == 0
 
+  def isPositive: Boolean = v.signum() >= 0
+
   def addUnsafe(that: I256): I256 = {
     val underlying = this.v.add(that.v)
     assume(validate(underlying))
@@ -95,10 +97,6 @@ object I256 {
     value.bitLength() <= 255
   }
 
-  def unsafe(value: Long): I256 = {
-    new I256(BigInteger.valueOf(value))
-  }
-
   def unsafe(value: BigInteger): I256 = {
     assume(validate(value))
     new I256(value)
@@ -115,6 +113,18 @@ object I256 {
 
   def from(value: Long): I256 = {
     new I256(BigInteger.valueOf(value))
+  }
+
+  def fromI64(value: I64): I256 = {
+    from(value.v)
+  }
+
+  def fromU64(value: U64): I256 = {
+    unsafe(value.toBigInt)
+  }
+
+  def fromU256(value: U256): Option[I256] = {
+    from(value.v)
   }
 
   val Zero: I256     = unsafe(BigInteger.ZERO)
