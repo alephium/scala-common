@@ -16,7 +16,7 @@ trait AlephiumSpec extends AnyFlatSpecLike with ScalaCheckDrivenPropertyChecks w
     arbitrary[List[Byte]].map(AVector.from))
   implicit lazy val i32Gen: Arbitrary[I32] = Arbitrary(arbitrary[Int].map(I32.unsafe))
   implicit lazy val u32Gen: Arbitrary[U32] = Arbitrary(arbitrary[Int].map(U32.unsafe))
-  implicit lazy val i64Gen: Arbitrary[I64] = Arbitrary(arbitrary[Long].map(I64.unsafe))
+  implicit lazy val i64Gen: Arbitrary[I64] = Arbitrary(arbitrary[Long].map(I64.from))
   implicit lazy val u64Gen: Arbitrary[U64] = Arbitrary(arbitrary[Long].map(U64.unsafe))
 
   implicit class IsOps[A: Equality](left: A)(implicit pos: Position) {

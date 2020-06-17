@@ -96,6 +96,18 @@ object U64 {
       case _: ArithmeticException => None
     }
 
+  def fromI64(value: I64): Option[U64] = {
+    if (value.isPositive) Some(unsafe(value.v)) else None
+  }
+
+  def fromI256(value: I256): Option[U64] = {
+    from(value.v)
+  }
+
+  def fromU256(value: U256): Option[U64] = {
+    from(value.v)
+  }
+
   val Zero: U64     = unsafe(0)
   val One: U64      = unsafe(1)
   val Two: U64      = unsafe(2)
