@@ -30,8 +30,8 @@ class I64Spec extends AlephiumSpec {
       a <- numGen
       b <- numGen
     } {
-      val aI64          = I64.unsafe(a)
-      val bI64          = I64.unsafe(b)
+      val aI64          = I64.from(a)
+      val bI64          = I64.from(b)
       lazy val expected = opExpected(aI64.toBigInt, bI64.toBigInt)
       if (bcondition(b) && abcondition(a, b) && expected >= I64.MinValue.toBigInt && expected <= I64.MaxValue.toBigInt) {
         op(aI64, bI64).get.toBigInt is expected
@@ -68,8 +68,8 @@ class I64Spec extends AlephiumSpec {
       a <- numGen
       b <- numGen
     } {
-      val aI64 = I64.unsafe(a)
-      val bI64 = I64.unsafe(b)
+      val aI64 = I64.from(a)
+      val bI64 = I64.from(b)
       aI64.compareTo(bI64) is java.lang.Long.compare(a, b)
     }
   }
