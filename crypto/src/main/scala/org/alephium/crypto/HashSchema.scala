@@ -50,9 +50,5 @@ abstract class HashSchema[T: TypeTag](unsafe: ByteString => T, toBytes: T => Byt
     hash(serializer.serialize(input))
   }
 
-  def random: T = {
-    val input = Array.fill[Byte](8)(0)
-    RandomBytes.source.nextBytes(input)
-    hash(input.toSeq)
-  }
+  def random: T = generate
 }
