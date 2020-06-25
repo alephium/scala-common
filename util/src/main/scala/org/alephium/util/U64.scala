@@ -18,6 +18,10 @@ class U64(val v: Long) extends AnyVal with Ordered[U64] {
     if (U64.checkAdd(this, underlying)) Some(U64.unsafe(underlying)) else None
   }
 
+  def addOneUnsafe(): U64 = addUnsafe(U64.One)
+
+  def addOne(): Option[U64] = add(U64.One)
+
   def subUnsafe(that: U64): U64 = {
     assume(U64.checkSub(this, that))
     U64.unsafe(this.v - that.v)
@@ -28,6 +32,10 @@ class U64(val v: Long) extends AnyVal with Ordered[U64] {
       Some(U64.unsafe(this.v - that.v))
     } else None
   }
+
+  def subOneUnsafe(): U64 = subUnsafe(U64.One)
+
+  def subOne(): Option[U64] = sub(U64.One)
 
   def mulUnsafe(that: U64): U64 = {
     if (this.v == 0) U64.Zero
@@ -67,6 +75,9 @@ class U64(val v: Long) extends AnyVal with Ordered[U64] {
   }
 
   def compare(that: U64): Int = JLong.compareUnsigned(this.v, that.v)
+
+  def min(that: U64): U64 = if (this > that) that else this
+  def max(that: U64): U64 = if (this < that) that else this
 
   def toBigInt: BigInteger = {
     val bi = BigInteger.valueOf(v)
