@@ -33,18 +33,18 @@ object Base58 {
       val nZeros = count(array.indexWhere(_ != 0), array.length)
       val prefix = Array.fill(nZeros)(alphabet(0))
 
-      val s = new StringBuilder()
+      val stringBuilder = new StringBuilder()
       @tailrec
       def iter(value: BigInt): Unit = {
         if (value != zero) {
           val (div, rem) = value /% base
-          s.append(alphabet(rem.intValue))
+          stringBuilder.append(alphabet(rem.intValue))
           iter(div)
-        } else s.reverseInPlace()
+        } else stringBuilder.reverseInPlace()
       }
       iter(BigInt(1, array))
 
-      s.insertAll(0, prefix).toString
+      stringBuilder.insertAll(0, prefix).toString
     }
   }
 
