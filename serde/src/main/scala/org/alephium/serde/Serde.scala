@@ -1,13 +1,12 @@
 package org.alephium.serde
 
-import java.nio.ByteBuffer
-
 import scala.annotation.tailrec
+import scala.collection.mutable
 import scala.reflect.ClassTag
 
 import akka.util.ByteString
 
-import org.alephium.util.AVector
+import org.alephium.util.{AVector, Bytes}
 
 trait Serde[T] extends Serializer[T] with Deserializer[T] { self =>
   // Note: make sure that T and S are isomorphic
@@ -93,6 +92,21 @@ trait FixedSizeSerde[T] extends Serde[T] {
 }
 
 object Serde extends ProductSerde {
+  private[serde] object BoolSerde extends FixedSizeSerde[Boolean] {
+    override val serdeSize: Int = java.lang.Byte.BYTES
+
+    override def serialize(input: Boolean): ByteString = {
+      ByteString(if (input) 1 else 0)
+    }
+
+    override def deserialize(input: ByteString): SerdeResult[Boolean] =
+      ByteSerde.deserialize(input).flatMap {
+        case 0    => Right(false)
+        case 1    => Right(true)
+        case byte => Left(SerdeError.validation(s"Invalid bool from byte $byte"))
+      }
+  }
+
   private[serde] object ByteSerde extends FixedSizeSerde[Byte] {
     override val serdeSize: Int = java.lang.Byte.BYTES
 
@@ -107,27 +121,19 @@ object Serde extends ProductSerde {
   private[serde] object IntSerde extends FixedSizeSerde[Int] {
     override val serdeSize: Int = java.lang.Integer.BYTES
 
-    override def serialize(input: Int): ByteString = {
-      val buf = ByteBuffer.allocate(serdeSize).putInt(input)
-      buf.flip()
-      ByteString.fromByteBuffer(buf)
-    }
+    override def serialize(input: Int): ByteString = Bytes.toBytes(input)
 
     override def deserialize(input: ByteString): SerdeResult[Int] =
-      deserialize0(input, _.asByteBuffer.getInt())
+      deserialize0(input, Bytes.toIntUnsafe)
   }
 
   private[serde] object LongSerde extends FixedSizeSerde[Long] {
     override val serdeSize: Int = java.lang.Long.BYTES
 
-    override def serialize(input: Long): ByteString = {
-      val buf = ByteBuffer.allocate(serdeSize).putLong(input)
-      buf.flip()
-      ByteString.fromByteBuffer(buf)
-    }
+    override def serialize(input: Long): ByteString = Bytes.toBytes(input)
 
     override def deserialize(input: ByteString): SerdeResult[Long] =
-      deserialize0(input, _.asByteBuffer.getLong())
+      deserialize0(input, Bytes.toLongUnsafe)
   }
 
   private[serde] object ByteStringSerde extends Serde[ByteString] {
@@ -200,19 +206,54 @@ object Serde extends ProductSerde {
     }
   }
 
-  private[serde] class AVectorDe[T: ClassTag](deserializer: Deserializer[T]) {
+  private[serde] class BatchDeserializer[T: ClassTag](deserializer: Deserializer[T]) {
     @tailrec
-    final def _deserialize(rest: ByteString,
-                           itemCnt: Int,
-                           output: AVector[T]): SerdeResult[(AVector[T], ByteString)] = {
-      if (itemCnt == 0) Right((output, rest))
+    private def __deserializeSeq[C <: mutable.IndexedSeq[T]](
+        rest: ByteString,
+        index: Int,
+        length: Int,
+        builder: mutable.Builder[T, C]): SerdeResult[(C, ByteString)] = {
+      if (index == length) Right(builder.result() -> rest)
       else {
         deserializer._deserialize(rest) match {
           case Right((t, tRest)) =>
-            _deserialize(tRest, itemCnt - 1, output :+ t)
+            builder += t
+            __deserializeSeq(tRest, index + 1, length, builder)
           case Left(e) => Left(e)
         }
       }
+    }
+
+    final def _deserializeSeq[C <: mutable.IndexedSeq[T]](
+        size: Int,
+        input: ByteString,
+        newBuilder: => mutable.Builder[T, C]): SerdeResult[(C, ByteString)] = {
+      val builder = newBuilder
+      builder.sizeHint(size)
+      __deserializeSeq(input, 0, size, builder)
+    }
+
+    @tailrec
+    private def _deserializeArray(rest: ByteString,
+                                  index: Int,
+                                  output: Array[T]): SerdeResult[(Array[T], ByteString)] = {
+      if (index == output.length) Right(output -> rest)
+      else {
+        deserializer._deserialize(rest) match {
+          case Right((t, tRest)) =>
+            output.update(index, t)
+            _deserializeArray(tRest, index + 1, output)
+          case Left(e) => Left(e)
+        }
+      }
+    }
+
+    def _deserializeArray(n: Int, input: ByteString): SerdeResult[(Array[T], ByteString)] = {
+      _deserializeArray(input, 0, Array.ofDim[T](n))
+    }
+
+    def _deserializeAVector(n: Int, input: ByteString): SerdeResult[(AVector[T], ByteString)] = {
+      _deserializeArray(n, input).map(t => AVector.unsafe(t._1) -> t._2)
     }
   }
 
@@ -220,7 +261,7 @@ object Serde extends ProductSerde {
     override val serdeSize: Int = bytes
 
     override def serialize(bs: ByteString): ByteString = {
-      assert(bs.length == serdeSize)
+      assume(bs.length == serdeSize)
       bs
     }
 
@@ -229,43 +270,57 @@ object Serde extends ProductSerde {
   }
 
   private[serde] def fixedSizeSerde[T: ClassTag](size: Int, serde: Serde[T]): Serde[AVector[T]] =
-    new AVectorDe[T](serde) with Serde[AVector[T]] {
+    new BatchDeserializer[T](serde) with Serde[AVector[T]] {
       override def serialize(input: AVector[T]): ByteString = {
         input.map(serde.serialize).fold(ByteString.empty)(_ ++ _)
       }
 
       override def _deserialize(input: ByteString): SerdeResult[(AVector[T], ByteString)] = {
-        _deserialize(input, size, AVector.empty)
+        _deserializeAVector(size, input)
       }
     }
 
-  class AVectorSerializer[T: ClassTag](serializer: Serializer[T]) extends Serializer[AVector[T]] {
+  private[serde] class AVectorSerializer[T: ClassTag](serializer: Serializer[T])
+      extends Serializer[AVector[T]] {
     override def serialize(input: AVector[T]): ByteString = {
       input.map(serializer.serialize).fold(IntSerde.serialize(input.length))(_ ++ _)
     }
   }
 
   private[serde] class AVectorDeserializer[T: ClassTag](deserializer: Deserializer[T])
-      extends AVectorDe[T](deserializer)
+      extends BatchDeserializer[T](deserializer)
       with Deserializer[AVector[T]] {
     override def _deserialize(input: ByteString): SerdeResult[(AVector[T], ByteString)] = {
       IntSerde._deserialize(input).flatMap {
-        case (size, rest) =>
-          _deserialize(rest, size, AVector.empty)
+        case (size, rest) => _deserializeAVector(size, rest)
       }
     }
   }
 
-  private[serde] def dynamicSizeSerde[T: ClassTag](serde: Serde[T]): Serde[AVector[T]] =
-    new AVectorDe[T](serde) with Serde[AVector[T]] {
+  private[serde] def avectorSerde[T: ClassTag](serde: Serde[T]): Serde[AVector[T]] =
+    new BatchDeserializer[T](serde) with Serde[AVector[T]] {
       override def serialize(input: AVector[T]): ByteString = {
         input.map(serde.serialize).fold(IntSerde.serialize(input.length))(_ ++ _)
       }
 
       override def _deserialize(input: ByteString): SerdeResult[(AVector[T], ByteString)] = {
         IntSerde._deserialize(input).flatMap {
-          case (size, rest) =>
-            _deserialize(rest, size, AVector.empty)
+          case (size, rest) => _deserializeAVector(size, rest)
+        }
+      }
+    }
+
+  private[serde] def dynamicSizeSerde[C <: mutable.IndexedSeq[T], T: ClassTag](
+      serde: Serde[T],
+      newBuilder: => mutable.Builder[T, C]): Serde[C] =
+    new BatchDeserializer[T](serde) with Serde[C] {
+      override def serialize(input: C): ByteString = {
+        input.map(serde.serialize).fold(IntSerde.serialize(input.length))(_ ++ _)
+      }
+
+      override def _deserialize(input: ByteString): SerdeResult[(C, ByteString)] = {
+        IntSerde._deserialize(input).flatMap {
+          case (size, rest) => _deserializeSeq(size, rest, newBuilder)
         }
       }
     }

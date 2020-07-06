@@ -130,13 +130,17 @@ abstract class AVectorSpec[@sp A: ClassTag](implicit ab: Arbitrary[A], cmp: Orde
     forAll { xs: Array[A] =>
       whenever(xs.length >= 4) {
         val vc0 = AVector.unsafe(xs)
+        vc0.get(-1).isEmpty is true
+        vc0.get(vc0.length).isEmpty is true
         val vc1 = vc0.take(4)
         0 until 4 foreach { i =>
           vc1(i) is xs(i)
+          vc1.get(i) is Some(xs(i))
         }
         val vc2 = vc0.takeRight(4)
         0 until 4 foreach { i =>
           vc2(i) is xs(xs.length - 4 + i)
+          vc2.get(i) is Some(xs(xs.length - 4 + i))
         }
       }
     }
@@ -238,6 +242,9 @@ abstract class AVectorSpec[@sp A: ClassTag](implicit ab: Arbitrary[A], cmp: Orde
         elem
       }
       checkEq(vc1, vc.toArray)
+
+      val arr = vc.mapToArray(identity)
+      checkEq(vc, arr)
     }
   }
 

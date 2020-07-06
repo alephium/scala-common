@@ -16,7 +16,9 @@ object ED25519PrivateKey
   override def length: Int = bcEd25519.SECRET_KEY_SIZE
 }
 
-class ED25519PublicKey(val bytes: ByteString) extends PublicKey
+class ED25519PublicKey(val bytes: ByteString) extends PublicKey {
+  def toByte32: Byte32 = Byte32.unsafe(bytes)
+}
 
 object ED25519PublicKey
     extends RandomBytes.Companion[ED25519PublicKey](bs => {
