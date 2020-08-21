@@ -4,6 +4,7 @@ Global / cancelable := true // Allow cancelation of forked task without killing 
 
 resolvers += "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/"
 
+// The base project
 def baseProject(id: String): Project = {
   Project(id, file(id))
     .settings(commonSettings: _*)
