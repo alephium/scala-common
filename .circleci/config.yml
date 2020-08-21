@@ -12,6 +12,10 @@ workflows:
     when: << pipeline.parameters.run >>
     jobs:
       - build
+  integration-skipped:
+    when: not << pipeline.parameters.run >>
+    jobs:
+      - skip
 
 jobs:
   build:
@@ -49,3 +53,9 @@ jobs:
 
       # run tests!
       - run: cat /dev/null | ./make test
+
+  skip:
+    docker:
+        - image: cimg/base:2020.01
+    steps:
+      - run: echo 'This build was SKIPPED, please trigger manually!' && exit 1
