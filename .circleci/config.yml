@@ -4,12 +4,12 @@
 #
 version: 2.1
 parameters:
-  skip:
+  run:
     type: boolean
-    default: true
+    default: false
 workflows:
   integration:
-    when: not << pipeline.parameters.skip >>
+    when: << pipeline.parameters.run >>
     jobs:
       - build
 
@@ -21,17 +21,11 @@ jobs:
     working_directory: ~/repo
 
     environment:
-      SKIP: << pipeline.parameters.skip >>
       # Customize the JVM maximum heap limit
       JVM_OPTS: -Xmx3200m
       TERM: dumb
 
     steps:
-      - run: |
-          if $SKIP ; then
-              echo 'This build was SKIPPED, please trigger manually!' && exit 1
-          fi
-
       - run:
           command: |
             sudo apt-get update

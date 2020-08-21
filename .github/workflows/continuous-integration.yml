@@ -17,7 +17,7 @@ jobs:
           curl -u 607d69ecd9c49c334321f057f11918faab8e8064: -X POST --header "Content-Type: application/json" -d '{
             "branch": "${{ github.event.inputs.branch }}",
             "parameters": {
-              "skip": false
+              "run": true
             }
           }' https://circleci.com/api/v2/project/github/alephium/alephium-scala-common/pipeline
 
