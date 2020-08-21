@@ -1,0 +1,51 @@
+# Scala CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/sample-config/ for more details
+#
+version: 2.1
+parameters:
+  skip:
+    type: boolean
+    default: true
+jobs:
+  build:
+    docker:
+      - image: circleci/openjdk:10-jdk
+
+    working_directory: ~/repo
+
+    environment:
+      SKIP: << pipeline.parameters.skip >>
+      # Customize the JVM maximum heap limit
+      JVM_OPTS: -Xmx3200m
+      TERM: dumb
+
+    steps:
+      - run: |
+          if $SKIP ; then
+              echo 'This build was SKIPPED, please trigger manually!' && exit 1
+          fi
+
+      - run:
+          command: |
+            sudo apt-get update
+            sudo apt-get dist-upgrade
+            sudo apt-get install python3
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "build.sbt" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+
+      - run: cat /dev/null | ./make build
+
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: v1-dependencies--{{ checksum "build.sbt" }}
+
+      # run tests!
+      - run: cat /dev/null | ./make test
