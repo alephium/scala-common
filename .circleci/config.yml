@@ -7,6 +7,12 @@ parameters:
   skip:
     type: boolean
     default: true
+workflows:
+  integration:
+    when: not << pipeline.parameters.skip >>
+    jobs:
+      - build
+
 jobs:
   build:
     docker:
