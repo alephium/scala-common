@@ -1,5 +1,7 @@
 import Dependencies._
 
+// bar
+
 Global / cancelable := true // Allow cancelation of forked task without killing SBT
 
 resolvers += "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/"
