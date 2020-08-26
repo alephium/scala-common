@@ -4,6 +4,20 @@ Global / cancelable := true // Allow cancelation of forked task without killing 
 
 resolvers += "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/"
 
+publishTo in ThisBuild := sonatypePublishToBundle.value
+
+Global / useGpg := false
+
+pgpPublicRing := file("alephium-gpg-keys/pubring.asc")
+pgpSecretRing := file("alephium-gpg-keys/secring.asc")
+pgpPassphrase := sys.env.get("PGP_PASSPHRASE").map(_.toArray)
+usePgpKeyHex("14D4756235A3A1DB305449FD56BC9CB20945C708")
+
+credentials ++= (for {
+  username <- Option(System.getenv().get("SONATYPE_USERNAME"))
+  password <- Option(System.getenv().get("SONATYPE_PASSWORD"))
+} yield Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", username, password)).toSeq
+
 def baseProject(id: String): Project = {
   Project(id, file(id))
     .settings(commonSettings: _*)
